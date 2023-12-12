@@ -1,0 +1,10 @@
+*.php text eol=lf
+
+/.* export-ignore
+/build-cs export-ignore
+/tests export-ignore
+/tmp export-ignore
+/Makefile export-ignore
+/phpcs.xml export-ignore
+/phpunit.xml export-ignore
+/phpstan.neon
