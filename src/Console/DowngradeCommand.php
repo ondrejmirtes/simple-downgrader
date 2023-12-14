@@ -9,8 +9,8 @@ use PhpParser\Node\Stmt;
 use PhpParser\NodeTraverser;
 use PhpParser\NodeVisitor\CloningVisitor;
 use PhpParser\Parser;
-use PhpParser\PrettyPrinter\Standard;
 use PHPStan\PhpDocParser\Printer\Printer;
+use SimpleDowngrader\Php\PhpPrinter;
 use SimpleDowngrader\PhpDoc\PhpDocEditor;
 use SimpleDowngrader\Visitor\DowngradeReadonlyPropertyVisitor;
 use Symfony\Component\Console\Command\Command;
@@ -44,13 +44,13 @@ class DowngradeCommand extends Command
 	/** @var Lexer */
 	private $lexer;
 
-	/** @var Standard */
+	/** @var PhpPrinter */
 	private $printer;
 
 	/** @var NodeTraverser */
 	private $cloningTraverser;
 
-	public function __construct(Parser $parser, Lexer $lexer, Standard $printer)
+	public function __construct(Parser $parser, Lexer $lexer, PhpPrinter $printer)
 	{
 		parent::__construct();
 		$this->parser = $parser;

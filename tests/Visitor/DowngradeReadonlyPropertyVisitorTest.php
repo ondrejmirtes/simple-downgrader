@@ -8,9 +8,9 @@ use PhpParser\NodeTraverser;
 use PhpParser\NodeVisitor;
 use PhpParser\NodeVisitor\CloningVisitor;
 use PhpParser\Parser\Php7;
-use PhpParser\PrettyPrinter\Standard;
 use PHPStan\PhpDocParser\Printer\Printer;
 use PHPUnit\Framework\TestCase;
+use SimpleDowngrader\Php\PhpPrinter;
 use SimpleDowngrader\PhpDoc\PhpDocEditor;
 
 class DowngradeReadonlyPropertyVisitorTest extends TestCase
@@ -91,6 +91,74 @@ class SomeClass
 }
 PHP,
 		];
+
+		yield [
+			<<<'PHP'
+<?php
+
+class SomeClass
+{
+	public readonly string $foo;
+
+	public function __construct()
+	{
+		$this->foo = 'foo';
+	}
+}
+PHP,
+			<<<'PHP'
+<?php
+
+class SomeClass
+{
+	/**
+	 * @readonly
+	 */
+	public string $foo;
+
+	public function __construct()
+	{
+		$this->foo = 'foo';
+	}
+}
+PHP,
+		];
+
+		yield [
+			<<<'PHP'
+<?php
+
+class SomeClass
+{
+	/**
+	 * @var non-empty-string
+	 */
+	public readonly string $foo;
+
+	public function __construct()
+	{
+		$this->foo = 'foo';
+	}
+}
+PHP,
+			<<<'PHP'
+<?php
+
+class SomeClass
+{
+	/**
+	 * @var non-empty-string
+	 * @readonly
+	 */
+	public string $foo;
+
+	public function __construct()
+	{
+		$this->foo = 'foo';
+	}
+}
+PHP,
+		];
 	}
 
 	/**
@@ -123,7 +191,7 @@ PHP,
 		/** @var Stmt[] $newStmts */
 		$newStmts = $traverser->traverse($newStmts);
 
-		$printer = new Standard();
+		$printer = new PhpPrinter();
 		$newCode = $printer->printFormatPreserving($newStmts, $oldStmts, $oldTokens);
 
 		$this->assertSame($codeAfter, $newCode);

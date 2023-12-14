@@ -2,8 +2,8 @@
 <?php declare(strict_types=1);
 
 use PhpParser\Parser\Php7;
-use PhpParser\PrettyPrinter\Standard;
 use SimpleDowngrader\Console\DowngradeCommand;
+use SimpleDowngrader\Php\PhpPrinter;
 use Symfony\Component\Console\Application;
 
 require_once __DIR__ . '/../vendor/autoload.php';
@@ -17,7 +17,7 @@ $lexer = new \PhpParser\Lexer\Emulative([
 ]);
 
 $parser = new Php7($lexer);
-$printer = new Standard();
+$printer = new PhpPrinter();
 
 $app = new Application();
 $app->add(new DowngradeCommand($parser, $lexer, $printer));
