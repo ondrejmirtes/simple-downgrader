@@ -62,8 +62,10 @@ jobs:
 
       - name: "Downgrade code"
         working-directory: "phpstan-src"
+        shell: bash
         run: "../bin/simple-downgrade downgrade -c build/downgrade.php ${{ matrix.php-version }}"
 
       - name: "Script"
         working-directory: "phpstan-src"
+        shell: bash
         run: "${{ matrix.script }}"
