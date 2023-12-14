@@ -37,7 +37,8 @@ class SomeClass
         $this->foo = 'foo';
     }
 }
-PHP,
+PHP
+,
 			<<<'PHP'
 <?php
 
@@ -53,7 +54,8 @@ class SomeClass
         $this->foo = 'foo';
     }
 }
-PHP,
+PHP
+,
 		];
 
 		yield [
@@ -72,7 +74,8 @@ class SomeClass
         $this->foo = 'foo';
     }
 }
-PHP,
+PHP
+,
 			<<<'PHP'
 <?php
 
@@ -89,7 +92,8 @@ class SomeClass
         $this->foo = 'foo';
     }
 }
-PHP,
+PHP
+,
 		];
 
 		yield [
@@ -105,7 +109,8 @@ class SomeClass
 		$this->foo = 'foo';
 	}
 }
-PHP,
+PHP
+,
 			<<<'PHP'
 <?php
 
@@ -121,7 +126,8 @@ class SomeClass
 		$this->foo = 'foo';
 	}
 }
-PHP,
+PHP
+,
 		];
 
 		yield [
@@ -140,7 +146,8 @@ class SomeClass
 		$this->foo = 'foo';
 	}
 }
-PHP,
+PHP
+,
 			<<<'PHP'
 <?php
 
@@ -157,7 +164,8 @@ class SomeClass
 		$this->foo = 'foo';
 	}
 }
-PHP,
+PHP
+,
 		];
 	}
 
