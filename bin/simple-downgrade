@@ -1,0 +1,25 @@
+#!/usr/bin/env php
+<?php declare(strict_types=1);
+
+use PhpParser\Parser\Php7;
+use PhpParser\PrettyPrinter\Standard;
+use SimpleDowngrader\Console\DowngradeCommand;
+use Symfony\Component\Console\Application;
+
+require_once __DIR__ . '/../vendor/autoload.php';
+
+$lexer = new \PhpParser\Lexer\Emulative([
+	'usedAttributes' => [
+		'comments',
+		'startLine', 'endLine',
+		'startTokenPos', 'endTokenPos',
+	],
+]);
+
+$parser = new Php7($lexer);
+$printer = new Standard();
+
+$app = new Application();
+$app->add(new DowngradeCommand($parser, $lexer, $printer));
+$app->setCatchExceptions(false);
+$app->run();

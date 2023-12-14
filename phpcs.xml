@@ -20,6 +20,7 @@
 		<exclude name="Squiz.Commenting.FunctionComment"/>
 		<exclude name="Squiz.PHP.Heredoc.NotAllowed"/>
 		<exclude name="Squiz.WhiteSpace.FunctionSpacing.Before"/>
+		<exclude name="Generic.CodeAnalysis.EmptyStatement.DetectedIf"/>
 	</rule>
 	<rule ref="SlevomatCodingStandard.Namespaces.AlphabeticallySortedUses">
 		<properties>
