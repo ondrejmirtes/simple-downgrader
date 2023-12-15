@@ -7,6 +7,7 @@ use Nette\Utils\Strings;
 use PhpParser\Lexer;
 use PhpParser\Node\Stmt;
 use PhpParser\NodeTraverser;
+use PhpParser\NodeVisitor;
 use PhpParser\NodeVisitor\CloningVisitor;
 use PhpParser\Parser;
 use PHPStan\PhpDocParser\Parser\PhpDocParser;
@@ -101,7 +102,7 @@ class DowngradeCommand extends Command
 		}
 
 		$phpVersionId = $this->parsePhpVersion($php);
-		$downgradeTraverser = $this->createDowngradeTraverser($phpVersionId);
+		$visitors = $this->createDowngradeVisitors($phpVersionId);
 
 		$cwd = getcwd();
 		if ($cwd === false) {
@@ -120,13 +121,16 @@ class DowngradeCommand extends Command
 
 		$files = $this->findFiles($paths, $excludePaths);
 		foreach ($files as $file) {
-			$this->processFile($file, $downgradeTraverser);
+			$this->processFile($file, $visitors);
 		}
 
 		return 0;
 	}
 
-	private function processFile(string $file, NodeTraverser $downgradeTraverser): void
+	/**
+	 * @param list<NodeVisitor> $visitors
+	 */
+	private function processFile(string $file, array $visitors): void
 	{
 		$contents = file_get_contents($file);
 		if ($contents === false) {
@@ -140,8 +144,13 @@ class DowngradeCommand extends Command
 		/** @var Stmt[] $newStmts */
 		$newStmts = $this->cloningTraverser->traverse($oldStmts);
 
-		/** @var Stmt[] $newStmts */
-		$newStmts = $downgradeTraverser->traverse($newStmts);
+		foreach ($visitors as $visitor) {
+			$traverser = new NodeTraverser();
+			$traverser->addVisitor($visitor);
+
+			/** @var Stmt[] $newStmts */
+			$newStmts = $traverser->traverse($newStmts);
+		}
 
 		$newCode = $this->printer->printFormatPreserving($newStmts, $oldStmts, $oldTokens);
 		$result = file_put_contents($file, $newCode);
@@ -150,43 +159,46 @@ class DowngradeCommand extends Command
 		}
 	}
 
-	private function createDowngradeTraverser(int $phpVersionId): NodeTraverser
+	/**
+	 * @return list<NodeVisitor>
+	 */
+	private function createDowngradeVisitors(int $phpVersionId): array
 	{
 		$phpDocPrinter = new Printer();
-		$traverser = new NodeTraverser();
 		$phpDocEditor = new PhpDocEditor($phpDocPrinter, $this->phpDocLexer, $this->phpDocParser);
 		$typeDowngraderHelper = new TypeDowngraderHelper($phpDocEditor);
+		$visitors = [];
 		if ($phpVersionId < 80100) {
-			$traverser->addVisitor(new DowngradeReadonlyPropertyVisitor($phpDocEditor));
-			$traverser->addVisitor(new DowngradeReadonlyPromotedPropertyVisitor($phpDocEditor));
-			$traverser->addVisitor(new DowngradePureIntersectionTypeVisitor($typeDowngraderHelper));
+			$visitors[] = new DowngradeReadonlyPropertyVisitor($phpDocEditor);
+			$visitors[] = new DowngradeReadonlyPromotedPropertyVisitor($phpDocEditor);
+			$visitors[] = new DowngradePureIntersectionTypeVisitor($typeDowngraderHelper);
 		}
 
 		if ($phpVersionId < 80000) {
-			$traverser->addVisitor(new DowngradeTrailingCommasInParametersVisitor());
-			$traverser->addVisitor(new DowngradeTrailingCommasInClosureUsesVisitor());
-			$traverser->addVisitor(new DowngradeNonCapturingCatchesVisitor());
-			$traverser->addVisitor(new DowngradeUnionTypeVisitor($typeDowngraderHelper));
-			$traverser->addVisitor(new DowngradePropertyPromotionVisitor(
+			$visitors[] = new DowngradeTrailingCommasInParametersVisitor();
+			$visitors[] = new DowngradeTrailingCommasInClosureUsesVisitor();
+			$visitors[] = new DowngradeNonCapturingCatchesVisitor();
+			$visitors[] = new DowngradeUnionTypeVisitor($typeDowngraderHelper);
+			$visitors[] = new DowngradePropertyPromotionVisitor(
 				$this->phpDocLexer,
 				$this->phpDocParser,
 				$phpDocEditor
-			));
-			$traverser->addVisitor(new DowngradeMixedTypeVisitor($typeDowngraderHelper));
-			$traverser->addVisitor(new DowngradeStaticReturnTypeVisitor($typeDowngraderHelper));
+			);
+			$visitors[] = new DowngradeMixedTypeVisitor($typeDowngraderHelper);
+			$visitors[] = new DowngradeStaticReturnTypeVisitor($typeDowngraderHelper);
 		}
 
 		if ($phpVersionId < 70400) {
-			//$traverser->addVisitor(new DowngradeTypedPropertyVisitor());
-			//$traverser->addVisitor(new DowngradeNullCoalescingOperatorVisitor());
-			//$traverser->addVisitor(new ArrowFunctionToAnonymousFunctionVisitor());
+			//$visitors[] = new DowngradeTypedPropertyVisitor());
+			//$visitors[] = new DowngradeNullCoalescingOperatorVisitor());
+			//$visitors[] = new ArrowFunctionToAnonymousFunctionVisitor());
 		}
 
 		if ($phpVersionId < 70300) {
-			//$traverser->addVisitor(new DowngradeTrailingCommasInFunctionCallsVisitor());
+			//$visitors[] = new DowngradeTrailingCommasInFunctionCallsVisitor());
 		}
 
-		return $traverser;
+		return $visitors;
 	}
 
 	/**
