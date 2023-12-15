@@ -18,6 +18,7 @@ use SimpleDowngrader\Visitor\DowngradePureIntersectionTypeVisitor;
 use SimpleDowngrader\Visitor\DowngradeReadonlyPromotedPropertyVisitor;
 use SimpleDowngrader\Visitor\DowngradeReadonlyPropertyVisitor;
 use SimpleDowngrader\Visitor\DowngradeStaticReturnTypeVisitor;
+use SimpleDowngrader\Visitor\DowngradeTrailingCommasInClosureUsesVisitor;
 use SimpleDowngrader\Visitor\DowngradeTrailingCommasInParametersVisitor;
 use SimpleDowngrader\Visitor\DowngradeUnionTypeVisitor;
 use SimpleDowngrader\Visitor\TypeDowngraderHelper;
