@@ -12,6 +12,7 @@ use PhpParser\Parser;
 use PHPStan\PhpDocParser\Printer\Printer;
 use SimpleDowngrader\Php\PhpPrinter;
 use SimpleDowngrader\PhpDoc\PhpDocEditor;
+use SimpleDowngrader\Visitor\DowngradePureIntersectionTypeVisitor;
 use SimpleDowngrader\Visitor\DowngradeReadonlyPromotedPropertyVisitor;
 use SimpleDowngrader\Visitor\DowngradeReadonlyPropertyVisitor;
 use Symfony\Component\Console\Command\Command;
@@ -140,7 +141,7 @@ class DowngradeCommand extends Command
 		if ($phpVersionId < 80100) {
 			$traverser->addVisitor(new DowngradeReadonlyPropertyVisitor($phpDocEditor));
 			$traverser->addVisitor(new DowngradeReadonlyPromotedPropertyVisitor($phpDocEditor));
-			//$traverser->addVisitor(new DowngradePureIntersectionTypeVisitor());
+			$traverser->addVisitor(new DowngradePureIntersectionTypeVisitor($phpDocEditor));
 		}
 
 		if ($phpVersionId < 80000) {
