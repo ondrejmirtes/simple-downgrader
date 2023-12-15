@@ -4,131 +4,31 @@ namespace SimpleDowngrader\Visitor;
 
 use PhpParser\Node;
 use PhpParser\NodeVisitorAbstract;
-use PHPStan\PhpDocParser\Ast\PhpDoc\ParamTagValueNode;
-use PHPStan\PhpDocParser\Ast\PhpDoc\PhpDocNode;
-use PHPStan\PhpDocParser\Ast\PhpDoc\PhpDocTagNode;
-use PHPStan\PhpDocParser\Ast\PhpDoc\ReturnTagValueNode;
-use PHPStan\PhpDocParser\Ast\PhpDoc\VarTagValueNode;
 use PHPStan\PhpDocParser\Ast\Type\IdentifierTypeNode;
 use PHPStan\PhpDocParser\Ast\Type\IntersectionTypeNode;
-use SimpleDowngrader\PhpDoc\PhpDocEditor;
+use PHPStan\PhpDocParser\Ast\Type\TypeNode;
 use function array_map;
-use function count;
-use function is_string;
 
 class DowngradePureIntersectionTypeVisitor extends NodeVisitorAbstract
 {
 
-	/** @var PhpDocEditor */
-	private $phpDocEditor;
+	/** @var TypeDowngraderHelper */
+	private $typeDowngraderHelper;
 
-	public function __construct(PhpDocEditor $phpDocEditor)
+	public function __construct(TypeDowngraderHelper $typeDowngraderHelper)
 	{
-		$this->phpDocEditor = $phpDocEditor;
+		$this->typeDowngraderHelper = $typeDowngraderHelper;
 	}
 
 	public function enterNode(Node $node)
 	{
-		if ($node instanceof Node\Stmt\Property && $node->type instanceof Node\IntersectionType) {
-			$intersectionType = $node->type;
-			$node->type = null;
-			$this->phpDocEditor->edit($node, function (\PHPStan\PhpDocParser\Ast\Node $node) use ($intersectionType) {
-				if (!$node instanceof PhpDocNode) {
-					return null;
-				}
-
-				if (count($node->getVarTagValues()) !== 0) {
-					return null;
-				}
-
-				$node->children[] = new PhpDocTagNode('@var', new VarTagValueNode(
-					$this->createIntersectionTypeNode($intersectionType),
-					'',
-					''
-				));
-
-				return $node;
-			});
-
-			return $node;
-		}
-
-		if ($node instanceof Node\Stmt\ClassMethod || $node instanceof Node\Stmt\Function_) {
-			foreach ($node->params as $param) {
-				if (!$param->type instanceof Node\IntersectionType) {
-					continue;
-				}
-
-				if (!$param->var instanceof Node\Expr\Variable || !is_string($param->var->name)) {
-					continue;
-				}
-
-				$intersectionType = $param->type;
-				$param->type = null;
-
-				$this->phpDocEditor->edit($node, function (\PHPStan\PhpDocParser\Ast\Node $node) use ($param, $intersectionType) {
-					if (!$node instanceof PhpDocNode) {
-						return null;
-					}
-
-					$paramTags = $node->getParamTagValues();
-					foreach ($paramTags as $paramTag) {
-						if ($paramTag->parameterName === '$' . $param->var->name) {
-							return null;
-						}
-					}
-
-					$node->children[] = new PhpDocTagNode('@param', new ParamTagValueNode(
-						$this->createIntersectionTypeNode($intersectionType),
-						$param->variadic,
-						'$' . $param->var->name,
-						''
-					));
-
-					return $node;
-				});
+		return $this->typeDowngraderHelper->downgradeType($node, function ($node): ?TypeNode {
+			if ($node instanceof Node\IntersectionType) {
+				return $this->createIntersectionTypeNode($node);
 			}
 
-			if ($node->returnType instanceof Node\IntersectionType) {
-				$intersectionType = $node->returnType;
-				$node->returnType = null;
-				$this->phpDocEditor->edit($node, function (\PHPStan\PhpDocParser\Ast\Node $node) use ($intersectionType) {
-					if (!$node instanceof PhpDocNode) {
-						return null;
-					}
-
-					if (count($node->getReturnTagValues()) !== 0) {
-						return null;
-					}
-
-					$node->children[] = new PhpDocTagNode('@return', new ReturnTagValueNode(
-						$this->createIntersectionTypeNode($intersectionType),
-						''
-					));
-
-					return $node;
-				});
-			}
-
-			return $node;
-		}
-
-		if ($node instanceof Node\Expr\Closure || $node instanceof Node\Expr\ArrowFunction) {
-			if ($node->returnType instanceof Node\IntersectionType) {
-				$node->returnType = null;
-			}
-			foreach ($node->params as $param) {
-				if (!$param->type instanceof Node\IntersectionType) {
-					continue;
-				}
-
-				$param->type = null;
-			}
-
-			return $node;
-		}
-
-		return null;
+			return null;
+		});
 	}
 
 	private function createIntersectionTypeNode(Node\IntersectionType $intersectionType): IntersectionTypeNode

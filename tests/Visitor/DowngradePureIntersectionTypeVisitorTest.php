@@ -11,7 +11,7 @@ class DowngradePureIntersectionTypeVisitorTest extends AbstractVisitorTestCase
 
 	protected function getVisitor(): NodeVisitor
 	{
-		return new DowngradePureIntersectionTypeVisitor(new PhpDocEditor(new Printer()));
+		return new DowngradePureIntersectionTypeVisitor(new TypeDowngraderHelper(new PhpDocEditor(new Printer())));
 	}
 
 	public function dataVisitor(): iterable

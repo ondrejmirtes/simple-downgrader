@@ -15,6 +15,7 @@ use SimpleDowngrader\PhpDoc\PhpDocEditor;
 use SimpleDowngrader\Visitor\DowngradePureIntersectionTypeVisitor;
 use SimpleDowngrader\Visitor\DowngradeReadonlyPromotedPropertyVisitor;
 use SimpleDowngrader\Visitor\DowngradeReadonlyPropertyVisitor;
+use SimpleDowngrader\Visitor\TypeDowngraderHelper;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
@@ -138,10 +139,11 @@ class DowngradeCommand extends Command
 		$phpDocPrinter = new Printer();
 		$traverser = new NodeTraverser();
 		$phpDocEditor = new PhpDocEditor($phpDocPrinter);
+		$typeDowngraderHelper = new TypeDowngraderHelper($phpDocEditor);
 		if ($phpVersionId < 80100) {
 			$traverser->addVisitor(new DowngradeReadonlyPropertyVisitor($phpDocEditor));
 			$traverser->addVisitor(new DowngradeReadonlyPromotedPropertyVisitor($phpDocEditor));
-			$traverser->addVisitor(new DowngradePureIntersectionTypeVisitor($phpDocEditor));
+			$traverser->addVisitor(new DowngradePureIntersectionTypeVisitor($typeDowngraderHelper));
 		}
 
 		if ($phpVersionId < 80000) {
