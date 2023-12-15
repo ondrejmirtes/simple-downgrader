@@ -18,6 +18,7 @@ use SimpleDowngrader\Visitor\DowngradePureIntersectionTypeVisitor;
 use SimpleDowngrader\Visitor\DowngradeReadonlyPromotedPropertyVisitor;
 use SimpleDowngrader\Visitor\DowngradeReadonlyPropertyVisitor;
 use SimpleDowngrader\Visitor\DowngradeStaticReturnTypeVisitor;
+use SimpleDowngrader\Visitor\DowngradeTrailingCommasInParametersVisitor;
 use SimpleDowngrader\Visitor\DowngradeUnionTypeVisitor;
 use SimpleDowngrader\Visitor\TypeDowngraderHelper;
 use Symfony\Component\Console\Command\Command;
@@ -151,7 +152,8 @@ class DowngradeCommand extends Command
 		}
 
 		if ($phpVersionId < 80000) {
-			//$traverser->addVisitor(new DowngradeTrailingCommasInParamUseVisitor());
+			$traverser->addVisitor(new DowngradeTrailingCommasInParametersVisitor());
+			$traverser->addVisitor(new DowngradeTrailingCommasInClosureUsesVisitor());
 			$traverser->addVisitor(new DowngradeNonCapturingCatchesVisitor());
 			$traverser->addVisitor(new DowngradeUnionTypeVisitor($typeDowngraderHelper));
 			//$traverser->addVisitor(new DowngradePropertyPromotionVisitor());
