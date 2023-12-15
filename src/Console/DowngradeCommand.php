@@ -153,6 +153,7 @@ class DowngradeCommand extends Command
 			//$traverser->addVisitor(new DowngradePropertyPromotionVisitor());
 			//$traverser->addVisitor(new DowngradeUnionTypeDeclarationVisitor());
 			//$traverser->addVisitor(new DowngradeMixedTypeDeclarationVisitor());
+			//$traverser->addVisitor(new DowngradeStaticReturnTypeDeclarationVisitor());
 		}
 
 		if ($phpVersionId < 70400) {
