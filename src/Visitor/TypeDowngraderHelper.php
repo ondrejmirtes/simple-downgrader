@@ -33,29 +33,32 @@ class TypeDowngraderHelper
 	public function downgradeType(Node $node, callable $callable): ?Node
 	{
 		if ($node instanceof Node\Stmt\Property && $node->type !== null) {
-			$type = $node->type;
-			$node->type = null;
-			$this->phpDocEditor->edit($node, static function (\PHPStan\PhpDocParser\Ast\Node $node) use ($type, $callable) {
-				if (!$node instanceof PhpDocNode) {
+			$this->phpDocEditor->edit($node, static function (\PHPStan\PhpDocParser\Ast\Node $phpDocNode) use ($node, $callable) {
+				if (!$phpDocNode instanceof PhpDocNode) {
 					return null;
 				}
 
-				if (count($node->getVarTagValues()) !== 0) {
+				if ($node->type === null) {
 					return null;
 				}
 
-				$resultType = $callable($type);
+				$resultType = $callable($node->type);
 				if ($resultType === null) {
 					return null;
 				}
 
-				$node->children[] = new PhpDocTagNode('@var', new VarTagValueNode(
+				$node->type = null;
+
+				if (count($phpDocNode->getVarTagValues()) !== 0) {
+					return null;
+				}
+				$phpDocNode->children[] = new PhpDocTagNode('@var', new VarTagValueNode(
 					$resultType,
 					'',
 					''
 				));
 
-				return $node;
+				return $phpDocNode;
 			});
 
 			return $node;
@@ -71,60 +74,65 @@ class TypeDowngraderHelper
 					continue;
 				}
 
-				$type = $param->type;
-				$param->type = null;
-
-				$this->phpDocEditor->edit($node, static function (\PHPStan\PhpDocParser\Ast\Node $node) use ($param, $type, $callable) {
-					if (!$node instanceof PhpDocNode) {
+				$this->phpDocEditor->edit($node, static function (\PHPStan\PhpDocParser\Ast\Node $phpDocNode) use ($param, $callable) {
+					if (!$phpDocNode instanceof PhpDocNode) {
 						return null;
 					}
 
-					$paramTags = $node->getParamTagValues();
+					if ($param->type === null) {
+						return null;
+					}
+
+					$resultType = $callable($param->type);
+					if ($resultType === null) {
+						return null;
+					}
+
+					$param->type = null;
+
+					$paramTags = $phpDocNode->getParamTagValues();
 					foreach ($paramTags as $paramTag) {
 						if ($paramTag->parameterName === '$' . $param->var->name) {
 							return null;
 						}
 					}
-
-					$resultType = $callable($type);
-					if ($resultType === null) {
-						return null;
-					}
-
-					$node->children[] = new PhpDocTagNode('@param', new ParamTagValueNode(
+					$phpDocNode->children[] = new PhpDocTagNode('@param', new ParamTagValueNode(
 						$resultType,
 						$param->variadic,
 						'$' . $param->var->name,
 						''
 					));
 
-					return $node;
+					return $phpDocNode;
 				});
 			}
 
 			if ($node->returnType !== null) {
-				$returnType = $node->returnType;
-				$node->returnType = null;
-				$this->phpDocEditor->edit($node, static function (\PHPStan\PhpDocParser\Ast\Node $node) use ($returnType, $callable) {
-					if (!$node instanceof PhpDocNode) {
+				$this->phpDocEditor->edit($node, static function (\PHPStan\PhpDocParser\Ast\Node $phpDocNode) use ($node, $callable) {
+					if (!$phpDocNode instanceof PhpDocNode) {
 						return null;
 					}
 
-					if (count($node->getReturnTagValues()) !== 0) {
+					if ($node->returnType === null) {
 						return null;
 					}
 
-					$resultType = $callable($returnType);
+					$resultType = $callable($node->returnType);
 					if ($resultType === null) {
 						return null;
 					}
 
-					$node->children[] = new PhpDocTagNode('@return', new ReturnTagValueNode(
+					$node->returnType = null;
+
+					if (count($phpDocNode->getReturnTagValues()) !== 0) {
+						return null;
+					}
+					$phpDocNode->children[] = new PhpDocTagNode('@return', new ReturnTagValueNode(
 						$resultType,
 						''
 					));
 
-					return $node;
+					return $phpDocNode;
 				});
 			}
 
@@ -153,7 +161,7 @@ class TypeDowngraderHelper
 			return $node;
 		}
 
-		return null;
+		return $node;
 	}
 
 }

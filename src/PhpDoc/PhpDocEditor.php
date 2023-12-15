@@ -13,6 +13,7 @@ use PHPStan\PhpDocParser\Parser\PhpDocParser;
 use PHPStan\PhpDocParser\Parser\TokenIterator;
 use PHPStan\PhpDocParser\Parser\TypeParser;
 use PHPStan\PhpDocParser\Printer\Printer;
+use function count;
 
 class PhpDocEditor
 {
@@ -60,6 +61,11 @@ class PhpDocEditor
 
 		/** @var PhpDocNode $newPhpDocNode */
 		[$newPhpDocNode] = $traverser->traverse([$newPhpDocNode]);
+
+		if (count($newPhpDocNode->children) === 0) {
+			$node->setAttribute('comments', []);
+			return;
+		}
 
 		$doc = new Doc($this->printer->printFormatPreserving($newPhpDocNode, $phpDocNode, $tokens));
 		$node->setDocComment($doc);
