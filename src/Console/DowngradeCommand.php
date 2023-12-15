@@ -9,6 +9,7 @@ use PhpParser\Node\Stmt;
 use PhpParser\NodeTraverser;
 use PhpParser\NodeVisitor\CloningVisitor;
 use PhpParser\Parser;
+use PHPStan\PhpDocParser\Parser\PhpDocParser;
 use PHPStan\PhpDocParser\Printer\Printer;
 use SimpleDowngrader\Php\PhpPrinter;
 use SimpleDowngrader\PhpDoc\PhpDocEditor;
@@ -56,15 +57,23 @@ class DowngradeCommand extends Command
 	/** @var PhpPrinter */
 	private $printer;
 
+	/** @var \PHPStan\PhpDocParser\Lexer\Lexer */
+	private $phpDocLexer;
+
+	/** @var PhpDocParser */
+	private $phpDocParser;
+
 	/** @var NodeTraverser */
 	private $cloningTraverser;
 
-	public function __construct(Parser $parser, Lexer $lexer, PhpPrinter $printer)
+	public function __construct(Parser $parser, Lexer $lexer, PhpPrinter $printer, \PHPStan\PhpDocParser\Lexer\Lexer $phpDocLexer, PhpDocParser $phpDocParser)
 	{
 		parent::__construct();
 		$this->parser = $parser;
 		$this->lexer = $lexer;
 		$this->printer = $printer;
+		$this->phpDocLexer = $phpDocLexer;
+		$this->phpDocParser = $phpDocParser;
 		$this->cloningTraverser = new NodeTraverser();
 		$this->cloningTraverser->addVisitor(new CloningVisitor());
 	}
@@ -144,7 +153,7 @@ class DowngradeCommand extends Command
 	{
 		$phpDocPrinter = new Printer();
 		$traverser = new NodeTraverser();
-		$phpDocEditor = new PhpDocEditor($phpDocPrinter);
+		$phpDocEditor = new PhpDocEditor($phpDocPrinter, $this->phpDocLexer, $this->phpDocParser);
 		$typeDowngraderHelper = new TypeDowngraderHelper($phpDocEditor);
 		if ($phpVersionId < 80100) {
 			$traverser->addVisitor(new DowngradeReadonlyPropertyVisitor($phpDocEditor));

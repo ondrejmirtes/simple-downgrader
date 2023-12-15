@@ -3,15 +3,13 @@
 namespace SimpleDowngrader\Visitor;
 
 use PhpParser\NodeVisitor;
-use PHPStan\PhpDocParser\Printer\Printer;
-use SimpleDowngrader\PhpDoc\PhpDocEditor;
 
 class DowngradeUnionTypeVisitorTest extends AbstractVisitorTestCase
 {
 
 	protected function getVisitor(): NodeVisitor
 	{
-		return new DowngradeUnionTypeVisitor(new TypeDowngraderHelper(new PhpDocEditor(new Printer())));
+		return new DowngradeUnionTypeVisitor($this->createTypeDowngraderHelper());
 	}
 
 	public function dataVisitor(): iterable

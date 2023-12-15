@@ -8,10 +8,8 @@ use PHPStan\PhpDocParser\Ast\NodeTraverser;
 use PHPStan\PhpDocParser\Ast\NodeVisitor\CloningVisitor;
 use PHPStan\PhpDocParser\Ast\PhpDoc\PhpDocNode;
 use PHPStan\PhpDocParser\Lexer\Lexer;
-use PHPStan\PhpDocParser\Parser\ConstExprParser;
 use PHPStan\PhpDocParser\Parser\PhpDocParser;
 use PHPStan\PhpDocParser\Parser\TokenIterator;
-use PHPStan\PhpDocParser\Parser\TypeParser;
 use PHPStan\PhpDocParser\Printer\Printer;
 use function count;
 
@@ -27,15 +25,11 @@ class PhpDocEditor
 	/** @var Printer */
 	private $printer;
 
-	public function __construct(Printer $printer)
+	public function __construct(Printer $printer, Lexer $lexer, PhpDocParser $phpDocParser)
 	{
-		$this->lexer = new Lexer(true);
-
-		$usedAttributes = ['lines' => true, 'indexes' => true];
-		$constExprParser = new ConstExprParser(true, true, $usedAttributes);
-		$typeParser = new TypeParser($constExprParser, true, $usedAttributes);
-		$this->phpDocParser = new PhpDocParser($typeParser, $constExprParser, true, true, $usedAttributes, true, true);
 		$this->printer = $printer;
+		$this->lexer = $lexer;
+		$this->phpDocParser = $phpDocParser;
 	}
 
 	/**

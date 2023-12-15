@@ -3,15 +3,13 @@
 namespace SimpleDowngrader\Visitor;
 
 use PhpParser\NodeVisitor;
-use PHPStan\PhpDocParser\Printer\Printer;
-use SimpleDowngrader\PhpDoc\PhpDocEditor;
 
 class DowngradeReadonlyPropertyVisitorTest extends AbstractVisitorTestCase
 {
 
 	protected function getVisitor(): NodeVisitor
 	{
-		return new DowngradeReadonlyPropertyVisitor(new PhpDocEditor(new Printer()));
+		return new DowngradeReadonlyPropertyVisitor($this->createPhpDocEditor());
 	}
 
 	public function dataVisitor(): iterable

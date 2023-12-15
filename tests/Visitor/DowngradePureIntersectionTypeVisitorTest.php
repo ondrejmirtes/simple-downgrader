@@ -3,15 +3,13 @@
 namespace SimpleDowngrader\Visitor;
 
 use PhpParser\NodeVisitor;
-use PHPStan\PhpDocParser\Printer\Printer;
-use SimpleDowngrader\PhpDoc\PhpDocEditor;
 
 class DowngradePureIntersectionTypeVisitorTest extends AbstractVisitorTestCase
 {
 
 	protected function getVisitor(): NodeVisitor
 	{
-		return new DowngradePureIntersectionTypeVisitor(new TypeDowngraderHelper(new PhpDocEditor(new Printer())));
+		return new DowngradePureIntersectionTypeVisitor($this->createTypeDowngraderHelper());
 	}
 
 	public function dataVisitor(): iterable

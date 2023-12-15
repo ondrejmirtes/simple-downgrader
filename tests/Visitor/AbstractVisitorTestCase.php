@@ -8,8 +8,14 @@ use PhpParser\NodeTraverser;
 use PhpParser\NodeVisitor;
 use PhpParser\NodeVisitor\CloningVisitor;
 use PhpParser\Parser\Php7;
+use PHPStan\PhpDocParser\Lexer\Lexer;
+use PHPStan\PhpDocParser\Parser\ConstExprParser;
+use PHPStan\PhpDocParser\Parser\PhpDocParser;
+use PHPStan\PhpDocParser\Parser\TypeParser;
+use PHPStan\PhpDocParser\Printer\Printer;
 use PHPUnit\Framework\TestCase;
 use SimpleDowngrader\Php\PhpPrinter;
+use SimpleDowngrader\PhpDoc\PhpDocEditor;
 
 abstract class AbstractVisitorTestCase extends TestCase
 {
@@ -53,6 +59,29 @@ abstract class AbstractVisitorTestCase extends TestCase
 		$newCode = $printer->printFormatPreserving($newStmts, $oldStmts, $oldTokens);
 
 		$this->assertSame($codeAfter, $newCode);
+	}
+
+	public function createPhpDocParser(): PhpDocParser
+	{
+		$usedAttributes = ['lines' => true, 'indexes' => true];
+		$constExprParser = new ConstExprParser(true, true, $usedAttributes);
+		$typeParser = new TypeParser($constExprParser, true, $usedAttributes);
+
+		return new PhpDocParser($typeParser, $constExprParser, true, true, $usedAttributes, true, true);
+	}
+
+	public function createPhpDocEditor(): PhpDocEditor
+	{
+		return new PhpDocEditor(
+			new Printer(),
+			new Lexer(true),
+			$this->createPhpDocParser()
+		);
+	}
+
+	public function createTypeDowngraderHelper(): TypeDowngraderHelper
+	{
+		return new TypeDowngraderHelper($this->createPhpDocEditor());
 	}
 
 }

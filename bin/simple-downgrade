@@ -2,6 +2,9 @@
 <?php declare(strict_types=1);
 
 use PhpParser\Parser\Php7;
+use PHPStan\PhpDocParser\Parser\ConstExprParser;
+use PHPStan\PhpDocParser\Parser\PhpDocParser;
+use PHPStan\PhpDocParser\Parser\TypeParser;
 use SimpleDowngrader\Console\DowngradeCommand;
 use SimpleDowngrader\Php\PhpPrinter;
 use Symfony\Component\Console\Application;
@@ -19,7 +22,13 @@ $lexer = new \PhpParser\Lexer\Emulative([
 $parser = new Php7($lexer);
 $printer = new PhpPrinter();
 
+$usedAttributes = ['lines' => true, 'indexes' => true];
+$constExprParser = new ConstExprParser(true, true, $usedAttributes);
+$typeParser = new TypeParser($constExprParser, true, $usedAttributes);
+$phpDocParser = new PhpDocParser($typeParser, $constExprParser, true, true, $usedAttributes, true, true);
+$phpDocLexer = new PHPStan\PhpDocParser\Lexer\Lexer(true);
+
 $app = new Application();
-$app->add(new DowngradeCommand($parser, $lexer, $printer));
+$app->add(new DowngradeCommand($parser, $lexer, $printer, $phpDocLexer, $phpDocParser));
 $app->setCatchExceptions(false);
 $app->run();
