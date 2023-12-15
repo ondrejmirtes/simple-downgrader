@@ -34,7 +34,7 @@ jobs:
         with:
           coverage: "none"
           php-version: "${{ matrix.php-version }}"
-          ini-values: memory_limit=512M
+          ini-values: memory_limit=2G
 
       - name: "Validate Composer"
         run: "composer validate"
@@ -59,7 +59,7 @@ jobs:
         with:
           coverage: "none"
           php-version: "8.2"
-          ini-values: memory_limit=512M
+          ini-values: memory_limit=2G
 
       - name: "Validate Composer"
         run: "composer validate"
@@ -102,7 +102,7 @@ jobs:
         with:
           coverage: "none"
           php-version: "${{ matrix.php-version }}"
-          ini-values: memory_limit=512M
+          ini-values: memory_limit=2G
 
       - name: "Install lowest dependencies"
         if: ${{ matrix.dependencies == 'lowest' }}
@@ -140,7 +140,7 @@ jobs:
         with:
           coverage: "none"
           php-version: "${{ matrix.php-version }}"
-          ini-values: memory_limit=512M
+          ini-values: memory_limit=2G
 
       - name: "Install dependencies"
         run: "composer update --no-interaction --no-progress"
