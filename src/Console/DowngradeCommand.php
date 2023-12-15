@@ -12,6 +12,7 @@ use PhpParser\Parser;
 use PHPStan\PhpDocParser\Printer\Printer;
 use SimpleDowngrader\Php\PhpPrinter;
 use SimpleDowngrader\PhpDoc\PhpDocEditor;
+use SimpleDowngrader\Visitor\DowngradeMixedTypeVisitor;
 use SimpleDowngrader\Visitor\DowngradePureIntersectionTypeVisitor;
 use SimpleDowngrader\Visitor\DowngradeReadonlyPromotedPropertyVisitor;
 use SimpleDowngrader\Visitor\DowngradeReadonlyPropertyVisitor;
@@ -152,7 +153,7 @@ class DowngradeCommand extends Command
 			//$traverser->addVisitor(new DowngradeNonCapturingCatchesVisitor());
 			$traverser->addVisitor(new DowngradeUnionTypeVisitor($typeDowngraderHelper));
 			//$traverser->addVisitor(new DowngradePropertyPromotionVisitor());
-			//$traverser->addVisitor(new DowngradeMixedTypeDeclarationVisitor());
+			$traverser->addVisitor(new DowngradeMixedTypeVisitor($typeDowngraderHelper));
 			//$traverser->addVisitor(new DowngradeStaticReturnTypeDeclarationVisitor());
 		}
 
