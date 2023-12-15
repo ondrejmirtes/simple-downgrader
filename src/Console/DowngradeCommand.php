@@ -170,7 +170,7 @@ class DowngradeCommand extends Command
 			$traverser->addVisitor(new DowngradePropertyPromotionVisitor(
 				$this->phpDocLexer,
 				$this->phpDocParser,
-				$phpDocPrinter
+				$phpDocEditor
 			));
 			$traverser->addVisitor(new DowngradeMixedTypeVisitor($typeDowngraderHelper));
 			$traverser->addVisitor(new DowngradeStaticReturnTypeVisitor($typeDowngraderHelper));

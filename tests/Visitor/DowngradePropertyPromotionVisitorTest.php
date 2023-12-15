@@ -4,26 +4,16 @@ namespace SimpleDowngrader\Visitor;
 
 use PhpParser\NodeVisitor;
 use PHPStan\PhpDocParser\Lexer\Lexer;
-use PHPStan\PhpDocParser\Parser\ConstExprParser;
-use PHPStan\PhpDocParser\Parser\PhpDocParser;
-use PHPStan\PhpDocParser\Parser\TypeParser;
-use PHPStan\PhpDocParser\Printer\Printer;
 
 class DowngradePropertyPromotionVisitorTest extends AbstractVisitorTestCase
 {
 
 	protected function getVisitor(): NodeVisitor
 	{
-		$usedAttributes = ['lines' => true, 'indexes' => true];
-		$constExprParser = new ConstExprParser(true, true, $usedAttributes);
-		$typeParser = new TypeParser($constExprParser, true, $usedAttributes);
-		$phpDocParser = new PhpDocParser($typeParser, $constExprParser, true, true, $usedAttributes, true, true);
-		$phpDocLexer = new Lexer(true);
-
 		return new DowngradePropertyPromotionVisitor(
-			$phpDocLexer,
-			$phpDocParser,
-			new Printer()
+			new Lexer(true),
+			$this->createPhpDocParser(),
+			$this->createPhpDocEditor()
 		);
 	}
 
@@ -109,6 +99,77 @@ class SomeClass
      */
     private Test $test;
     /** @param Test&Something $test */
+    public function __construct(Test $test)
+    {
+        $this->test = $test;
+    }
+}
+PHP
+,
+		];
+
+		yield [
+			<<<'PHP'
+<?php
+
+class SomeClass
+{
+    public function __construct(
+        /** @readonly */
+        private Test $test
+    )
+    {
+
+    }
+}
+PHP
+,
+			<<<'PHP'
+<?php
+
+class SomeClass
+{
+    /** @readonly */
+    private Test $test;
+    public function __construct(Test $test)
+    {
+        $this->test = $test;
+    }
+}
+PHP
+,
+		];
+
+		yield [
+			<<<'PHP'
+<?php
+
+class SomeClass
+{
+    /** @param Test&Foo $test */
+    public function __construct(
+        /**
+         * @readonly
+         */
+        private Test $test
+    )
+    {
+
+    }
+}
+PHP
+,
+			<<<'PHP'
+<?php
+
+class SomeClass
+{
+    /**
+     * @readonly
+     * @var Test&Foo
+     */
+    private Test $test;
+    /** @param Test&Foo $test */
     public function __construct(Test $test)
     {
         $this->test = $test;

@@ -2,7 +2,6 @@
 
 namespace SimpleDowngrader\Visitor;
 
-use PhpParser\Comment\Doc;
 use PhpParser\Node;
 use PhpParser\NodeVisitorAbstract;
 use PHPStan\PhpDocParser\Ast\PhpDoc\PhpDocNode;
@@ -11,7 +10,7 @@ use PHPStan\PhpDocParser\Ast\PhpDoc\VarTagValueNode;
 use PHPStan\PhpDocParser\Lexer\Lexer;
 use PHPStan\PhpDocParser\Parser\PhpDocParser;
 use PHPStan\PhpDocParser\Parser\TokenIterator;
-use PHPStan\PhpDocParser\Printer\Printer;
+use SimpleDowngrader\PhpDoc\PhpDocEditor;
 use function array_key_exists;
 use function array_reverse;
 use function array_unshift;
@@ -27,8 +26,8 @@ class DowngradePropertyPromotionVisitor extends NodeVisitorAbstract
 	/** @var PhpDocParser */
 	private $phpDocParser;
 
-	/** @var Printer */
-	private $printer;
+	/** @var PhpDocEditor */
+	private $phpDocEditor;
 
 	/** @var Node\Stmt\ClassLike|null */
 	private $inClass;
@@ -39,12 +38,12 @@ class DowngradePropertyPromotionVisitor extends NodeVisitorAbstract
 	public function __construct(
 		Lexer $lexer,
 		PhpDocParser $phpDocParser,
-		Printer $printer
+		PhpDocEditor $phpDocEditor
 	)
 	{
 		$this->lexer = $lexer;
 		$this->phpDocParser = $phpDocParser;
-		$this->printer = $printer;
+		$this->phpDocEditor = $phpDocEditor;
 	}
 
 	public function enterNode(Node $node)
@@ -96,16 +95,20 @@ class DowngradePropertyPromotionVisitor extends NodeVisitorAbstract
 				[
 					new Node\Stmt\PropertyProperty($p->var->name),
 				],
-				[],
+				[
+					'comments' => $p->getComments(),
+				],
 				$p->type,
 				$p->attrGroups
 			);
 			if (array_key_exists($p->var->name, $phpDocParams)) {
-				$propertyNode->setDocComment(new Doc(
-					$this->printer->print(new PhpDocNode([
-						new PhpDocTagNode('@var', new VarTagValueNode($phpDocParams[$p->var->name]->type, '', '')),
-					]))
-				));
+				$this->phpDocEditor->edit($propertyNode, static function (\PHPStan\PhpDocParser\Ast\Node $phpDocNode) use ($phpDocParams, $p) {
+					if (!$phpDocNode instanceof PhpDocNode) {
+						return null;
+					}
+
+					$phpDocNode->children[] = new PhpDocTagNode('@var', new VarTagValueNode($phpDocParams[$p->var->name]->type, '', ''));
+				});
 			}
 			array_unshift($classStmts, $propertyNode);
 			array_unshift($methodStmts, new Node\Stmt\Expression(
@@ -115,6 +118,7 @@ class DowngradePropertyPromotionVisitor extends NodeVisitorAbstract
 				)
 			));
 			$p->flags = 0;
+			$p->setAttribute('comments', []);
 		}
 
 		$this->inClassStmts = $classStmts;
