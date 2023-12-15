@@ -53,6 +53,83 @@ class SomeClass
 PHP
 ,
 		];
+
+		yield [
+			<<<'PHP'
+<?php
+
+function (Foo&Bar $fb): Foo&Bar {
+};
+PHP
+,
+			<<<'PHP'
+<?php
+
+function ($fb) {
+};
+PHP
+,
+		];
+
+		yield [
+			<<<'PHP'
+<?php
+
+fn (Foo&Bar $fb): Foo&Bar => new \stdClass();
+PHP
+,
+			<<<'PHP'
+<?php
+
+fn ($fb) => new \stdClass();
+PHP
+,
+		];
+
+		yield [
+			<<<'PHP'
+<?php
+
+class SomeClass
+{
+    /**
+     * @var Foo&Bar
+     */
+    public Foo&Bar $foo;
+
+    /**
+     * @param \Foo&\Bar $a
+     * @return Foo&\Bar
+     */
+    public function doFoo(\Foo&\Bar $a): Foo&\Bar
+    {
+        $this->foo = 'foo';
+    }
+}
+PHP
+,
+			<<<'PHP'
+<?php
+
+class SomeClass
+{
+    /**
+     * @var Foo&Bar
+     */
+    public $foo;
+
+    /**
+     * @param \Foo&\Bar $a
+     * @return Foo&\Bar
+     */
+    public function doFoo($a)
+    {
+        $this->foo = 'foo';
+    }
+}
+PHP
+,
+		];
 	}
 
 }

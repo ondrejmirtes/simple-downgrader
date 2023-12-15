@@ -13,6 +13,7 @@ use PHPStan\PhpDocParser\Ast\Type\IdentifierTypeNode;
 use PHPStan\PhpDocParser\Ast\Type\IntersectionTypeNode;
 use SimpleDowngrader\PhpDoc\PhpDocEditor;
 use function array_map;
+use function count;
 use function is_string;
 
 class DowngradePureIntersectionTypeVisitor extends NodeVisitorAbstract
@@ -33,6 +34,10 @@ class DowngradePureIntersectionTypeVisitor extends NodeVisitorAbstract
 			$node->type = null;
 			$this->phpDocEditor->edit($node, function (\PHPStan\PhpDocParser\Ast\Node $node) use ($intersectionType) {
 				if (!$node instanceof PhpDocNode) {
+					return null;
+				}
+
+				if (count($node->getVarTagValues()) !== 0) {
 					return null;
 				}
 
@@ -66,6 +71,13 @@ class DowngradePureIntersectionTypeVisitor extends NodeVisitorAbstract
 						return null;
 					}
 
+					$paramTags = $node->getParamTagValues();
+					foreach ($paramTags as $paramTag) {
+						if ($paramTag->parameterName === '$' . $param->var->name) {
+							return null;
+						}
+					}
+
 					$node->children[] = new PhpDocTagNode('@param', new ParamTagValueNode(
 						$this->createIntersectionTypeNode($intersectionType),
 						$param->variadic,
@@ -85,6 +97,10 @@ class DowngradePureIntersectionTypeVisitor extends NodeVisitorAbstract
 						return null;
 					}
 
+					if (count($node->getReturnTagValues()) !== 0) {
+						return null;
+					}
+
 					$node->children[] = new PhpDocTagNode('@return', new ReturnTagValueNode(
 						$this->createIntersectionTypeNode($intersectionType),
 						''
@@ -92,6 +108,21 @@ class DowngradePureIntersectionTypeVisitor extends NodeVisitorAbstract
 
 					return $node;
 				});
+			}
+
+			return $node;
+		}
+
+		if ($node instanceof Node\Expr\Closure || $node instanceof Node\Expr\ArrowFunction) {
+			if ($node->returnType instanceof Node\IntersectionType) {
+				$node->returnType = null;
+			}
+			foreach ($node->params as $param) {
+				if (!$param->type instanceof Node\IntersectionType) {
+					continue;
+				}
+
+				$param->type = null;
 			}
 
 			return $node;
