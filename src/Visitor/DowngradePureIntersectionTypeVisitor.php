@@ -2,7 +2,6 @@
 
 namespace SimpleDowngrader\Visitor;
 
-use PhpParser\Comment\Doc;
 use PhpParser\Node;
 use PhpParser\NodeVisitorAbstract;
 use PHPStan\PhpDocParser\Ast\PhpDoc\ParamTagValueNode;
@@ -32,25 +31,19 @@ class DowngradePureIntersectionTypeVisitor extends NodeVisitorAbstract
 		if ($node instanceof Node\Stmt\Property && $node->type instanceof Node\IntersectionType) {
 			$intersectionType = $node->type;
 			$node->type = null;
-			$phpDoc = '/** */';
-			if ($node->getDocComment() !== null) {
-				$phpDoc = $node->getDocComment()->getText();
-			}
-			$node->setDocComment(new Doc(
-				$this->phpDocEditor->edit($phpDoc, function (\PHPStan\PhpDocParser\Ast\Node $node) use ($intersectionType) {
-					if (!$node instanceof PhpDocNode) {
-						return null;
-					}
+			$this->phpDocEditor->edit($node, function (\PHPStan\PhpDocParser\Ast\Node $node) use ($intersectionType) {
+				if (!$node instanceof PhpDocNode) {
+					return null;
+				}
 
-					$node->children[] = new PhpDocTagNode('@var', new VarTagValueNode(
-						$this->createIntersectionTypeNode($intersectionType),
-						'',
-						''
-					));
+				$node->children[] = new PhpDocTagNode('@var', new VarTagValueNode(
+					$this->createIntersectionTypeNode($intersectionType),
+					'',
+					''
+				));
 
-					return $node;
-				})
-			));
+				return $node;
+			});
 
 			return $node;
 		}
@@ -68,49 +61,37 @@ class DowngradePureIntersectionTypeVisitor extends NodeVisitorAbstract
 				$intersectionType = $param->type;
 				$param->type = null;
 
-				$phpDoc = '/** */';
-				if ($node->getDocComment() !== null) {
-					$phpDoc = $node->getDocComment()->getText();
-				}
-				$node->setDocComment(new Doc(
-					$this->phpDocEditor->edit($phpDoc, function (\PHPStan\PhpDocParser\Ast\Node $node) use ($param, $intersectionType) {
-						if (!$node instanceof PhpDocNode) {
-							return null;
-						}
+				$this->phpDocEditor->edit($node, function (\PHPStan\PhpDocParser\Ast\Node $node) use ($param, $intersectionType) {
+					if (!$node instanceof PhpDocNode) {
+						return null;
+					}
 
-						$node->children[] = new PhpDocTagNode('@param', new ParamTagValueNode(
-							$this->createIntersectionTypeNode($intersectionType),
-							$param->variadic,
-							'$' . $param->var->name,
-							''
-						));
+					$node->children[] = new PhpDocTagNode('@param', new ParamTagValueNode(
+						$this->createIntersectionTypeNode($intersectionType),
+						$param->variadic,
+						'$' . $param->var->name,
+						''
+					));
 
-						return $node;
-					})
-				));
+					return $node;
+				});
 			}
 
 			if ($node->returnType instanceof Node\IntersectionType) {
 				$intersectionType = $node->returnType;
 				$node->returnType = null;
-				$phpDoc = '/** */';
-				if ($node->getDocComment() !== null) {
-					$phpDoc = $node->getDocComment()->getText();
-				}
-				$node->setDocComment(new Doc(
-					$this->phpDocEditor->edit($phpDoc, function (\PHPStan\PhpDocParser\Ast\Node $node) use ($intersectionType) {
-						if (!$node instanceof PhpDocNode) {
-							return null;
-						}
+				$this->phpDocEditor->edit($node, function (\PHPStan\PhpDocParser\Ast\Node $node) use ($intersectionType) {
+					if (!$node instanceof PhpDocNode) {
+						return null;
+					}
 
-						$node->children[] = new PhpDocTagNode('@return', new ReturnTagValueNode(
-							$this->createIntersectionTypeNode($intersectionType),
-							''
-						));
+					$node->children[] = new PhpDocTagNode('@return', new ReturnTagValueNode(
+						$this->createIntersectionTypeNode($intersectionType),
+						''
+					));
 
-						return $node;
-					})
-				));
+					return $node;
+				});
 			}
 
 			return $node;

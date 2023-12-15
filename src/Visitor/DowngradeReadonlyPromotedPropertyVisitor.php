@@ -2,7 +2,6 @@
 
 namespace SimpleDowngrader\Visitor;
 
-use PhpParser\Comment\Doc;
 use PhpParser\Node;
 use PhpParser\Node\Stmt\Class_;
 use PhpParser\NodeVisitorAbstract;
@@ -38,23 +37,15 @@ class DowngradeReadonlyPromotedPropertyVisitor extends NodeVisitorAbstract
 		}
 
 		$node->flags &= ~Node\Stmt\Class_::MODIFIER_READONLY;
-		$docComment = $node->getDocComment();
-		$phpDoc = '/** */';
-		if ($docComment !== null) {
-			$phpDoc = $docComment->getText();
-		}
+		$this->phpDocEditor->edit($node, static function (\PHPStan\PhpDocParser\Ast\Node $node) {
+			if (!$node instanceof PhpDocNode) {
+				return null;
+			}
 
-		$node->setDocComment(new Doc(
-			$this->phpDocEditor->edit($phpDoc, static function (\PHPStan\PhpDocParser\Ast\Node $node) {
-				if (!$node instanceof PhpDocNode) {
-					return null;
-				}
+			$node->children[] = new PhpDocTagNode('@readonly', new GenericTagValueNode(''));
 
-				$node->children[] = new PhpDocTagNode('@readonly', new GenericTagValueNode(''));
-
-				return $node;
-			})
-		));
+			return $node;
+		});
 
 		return $node;
 	}

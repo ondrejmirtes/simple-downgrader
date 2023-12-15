@@ -2,6 +2,7 @@
 
 namespace SimpleDowngrader\PhpDoc;
 
+use PhpParser\Comment\Doc;
 use PHPStan\PhpDocParser\Ast\Node;
 use PHPStan\PhpDocParser\Ast\NodeTraverser;
 use PHPStan\PhpDocParser\Ast\NodeVisitor\CloningVisitor;
@@ -39,8 +40,14 @@ class PhpDocEditor
 	/**
 	 * @param callable(Node): mixed $callback
 	 */
-	public function edit(string $phpDoc, callable $callback): string
+	public function edit(\PhpParser\Node $node, callable $callback): void
 	{
+		$doc = $node->getDocComment();
+		if ($doc === null) {
+			$phpDoc = '/** */';
+		} else {
+			$phpDoc = $doc->getText();
+		}
 		$tokens = new TokenIterator($this->lexer->tokenize($phpDoc));
 		$phpDocNode = $this->phpDocParser->parse($tokens);
 
@@ -54,7 +61,8 @@ class PhpDocEditor
 		/** @var PhpDocNode $newPhpDocNode */
 		[$newPhpDocNode] = $traverser->traverse([$newPhpDocNode]);
 
-		return $this->printer->printFormatPreserving($newPhpDocNode, $phpDocNode, $tokens);
+		$doc = new Doc($this->printer->printFormatPreserving($newPhpDocNode, $phpDocNode, $tokens));
+		$node->setDocComment($doc);
 	}
 
 }
