@@ -50,7 +50,11 @@ abstract class AbstractVisitorTestCase extends TestCase
 		$newStmts = $cloningTraverser->traverse($oldStmts);
 
 		$traverser = new NodeTraverser();
-		$traverser->addVisitor($this->getVisitor());
+		$visitor = $this->getVisitor();
+		if ($visitor instanceof TokensAwareVisitor) {
+			$visitor->setTokens($oldTokens);
+		}
+		$traverser->addVisitor($visitor);
 
 		/** @var Stmt[] $newStmts */
 		$newStmts = $traverser->traverse($newStmts);

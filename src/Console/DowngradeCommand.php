@@ -12,6 +12,7 @@ use PhpParser\NodeVisitor\CloningVisitor;
 use PhpParser\Parser;
 use PHPStan\PhpDocParser\Parser\PhpDocParser;
 use PHPStan\PhpDocParser\Printer\Printer;
+use SimpleDowngrader\Php\FollowedByCommaAnalyser;
 use SimpleDowngrader\Php\PhpPrinter;
 use SimpleDowngrader\PhpDoc\PhpDocEditor;
 use SimpleDowngrader\Visitor\DowngradeMixedTypeVisitor;
@@ -24,6 +25,7 @@ use SimpleDowngrader\Visitor\DowngradeStaticReturnTypeVisitor;
 use SimpleDowngrader\Visitor\DowngradeTrailingCommasInClosureUsesVisitor;
 use SimpleDowngrader\Visitor\DowngradeTrailingCommasInParametersVisitor;
 use SimpleDowngrader\Visitor\DowngradeUnionTypeVisitor;
+use SimpleDowngrader\Visitor\TokensAwareVisitor;
 use SimpleDowngrader\Visitor\TypeDowngraderHelper;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
@@ -151,6 +153,10 @@ class DowngradeCommand extends Command
 			$traverser = new NodeTraverser();
 			$traverser->addVisitor($visitor);
 
+			if ($visitor instanceof TokensAwareVisitor) {
+				$visitor->setTokens($oldTokens);
+			}
+
 			/** @var Stmt[] $newStmts */
 			$newStmts = $traverser->traverse($newStmts);
 		}
@@ -170,6 +176,7 @@ class DowngradeCommand extends Command
 		$phpDocPrinter = new Printer();
 		$phpDocEditor = new PhpDocEditor($phpDocPrinter, $this->phpDocLexer, $this->phpDocParser);
 		$typeDowngraderHelper = new TypeDowngraderHelper($phpDocEditor);
+		$followedByCommaAnalyser = new FollowedByCommaAnalyser();
 		$visitors = [];
 		if ($phpVersionId < 80100) {
 			$visitors[] = new DowngradeReadonlyPropertyVisitor($phpDocEditor);
@@ -178,8 +185,8 @@ class DowngradeCommand extends Command
 		}
 
 		if ($phpVersionId < 80000) {
-			$visitors[] = new DowngradeTrailingCommasInParametersVisitor();
-			$visitors[] = new DowngradeTrailingCommasInClosureUsesVisitor();
+			$visitors[] = new DowngradeTrailingCommasInParametersVisitor($followedByCommaAnalyser);
+			$visitors[] = new DowngradeTrailingCommasInClosureUsesVisitor($followedByCommaAnalyser);
 			$visitors[] = new DowngradeNonCapturingCatchesVisitor();
 			$visitors[] = new DowngradeUnionTypeVisitor($typeDowngraderHelper);
 			$visitors[] = new DowngradePropertyPromotionVisitor(

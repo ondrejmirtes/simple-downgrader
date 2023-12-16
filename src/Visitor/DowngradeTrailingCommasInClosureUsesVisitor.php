@@ -4,11 +4,31 @@ namespace SimpleDowngrader\Visitor;
 
 use PhpParser\Node;
 use PhpParser\NodeVisitorAbstract;
+use SimpleDowngrader\Php\FollowedByCommaAnalyser;
 use SimpleDowngrader\Php\PhpPrinter;
 use function count;
 
-class DowngradeTrailingCommasInClosureUsesVisitor extends NodeVisitorAbstract
+class DowngradeTrailingCommasInClosureUsesVisitor extends NodeVisitorAbstract implements TokensAwareVisitor
 {
+
+	/** @var FollowedByCommaAnalyser */
+	private $followedByCommaAnalyzer;
+
+	/** @var mixed[] */
+	private $tokens;
+
+	public function __construct(FollowedByCommaAnalyser $followedByCommaAnalyzer)
+	{
+		$this->followedByCommaAnalyzer = $followedByCommaAnalyzer;
+	}
+
+	/**
+	 * @param mixed[] $tokens
+	 */
+	public function setTokens(array $tokens): void
+	{
+		$this->tokens = $tokens;
+	}
 
 	public function enterNode(Node $node)
 	{
@@ -22,6 +42,10 @@ class DowngradeTrailingCommasInClosureUsesVisitor extends NodeVisitorAbstract
 		}
 
 		$lastUse = $uses[count($uses) - 1];
+		if (!$this->followedByCommaAnalyzer->isFollowed($this->tokens, $lastUse)) {
+			return null;
+		}
+
 		$lastUse->setAttribute(PhpPrinter::FUNC_ARGS_TRAILING_COMMA_ATTRIBUTE, false);
 		$node->setAttribute('origNode', null);
 
