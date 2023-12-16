@@ -17,6 +17,7 @@ use SimpleDowngrader\Php\PhpPrinter;
 use SimpleDowngrader\PhpDoc\PhpDocEditor;
 use SimpleDowngrader\Visitor\DowngradeMixedTypeVisitor;
 use SimpleDowngrader\Visitor\DowngradeNonCapturingCatchesVisitor;
+use SimpleDowngrader\Visitor\DowngradeNullCoalesceAssignOperatorVisitor;
 use SimpleDowngrader\Visitor\DowngradePropertyPromotionVisitor;
 use SimpleDowngrader\Visitor\DowngradePureIntersectionTypeVisitor;
 use SimpleDowngrader\Visitor\DowngradeReadonlyPromotedPropertyVisitor;
@@ -202,7 +203,7 @@ class DowngradeCommand extends Command
 
 		if ($phpVersionId < 70400) {
 			$visitors[] = new DowngradeTypedPropertyVisitor($typeDowngraderHelper);
-			//$visitors[] = new DowngradeNullCoalescingOperatorVisitor());
+			$visitors[] = new DowngradeNullCoalesceAssignOperatorVisitor();
 			//$visitors[] = new ArrowFunctionToAnonymousFunctionVisitor());
 		}
 
