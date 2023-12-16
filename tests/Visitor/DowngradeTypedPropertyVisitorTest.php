@@ -85,6 +85,30 @@ class SomeClass
 PHP
 ,
 		];
+
+		yield [
+			<<<'PHP'
+<?php
+
+class SomeClass
+{
+    public ?Foo $foo;
+}
+PHP
+,
+			<<<'PHP'
+<?php
+
+class SomeClass
+{
+    /**
+     * @var ?Foo
+     */
+    public $foo;
+}
+PHP
+,
+		];
 	}
 
 }

@@ -6,6 +6,7 @@ use Exception;
 use PhpParser\Node;
 use PhpParser\NodeVisitorAbstract;
 use PHPStan\PhpDocParser\Ast\Type\IdentifierTypeNode;
+use PHPStan\PhpDocParser\Ast\Type\NullableTypeNode;
 use PHPStan\PhpDocParser\Ast\Type\TypeNode;
 use function get_class;
 use function sprintf;
@@ -27,7 +28,7 @@ class DowngradeTypedPropertyVisitor extends NodeVisitorAbstract
 			return null;
 		}
 
-		return $this->typeDowngraderHelper->downgradeType($node, static function ($node): TypeNode {
+		$downgrade = static function ($node): TypeNode {
 			if ($node instanceof Node\Identifier) {
 				return new IdentifierTypeNode($node->toString());
 			}
@@ -37,6 +38,14 @@ class DowngradeTypedPropertyVisitor extends NodeVisitorAbstract
 			}
 
 			throw new Exception(sprintf('%s should have already been downgraded', get_class($node)));
+		};
+
+		return $this->typeDowngraderHelper->downgradeType($node, static function ($node) use ($downgrade): TypeNode {
+			if ($node instanceof Node\NullableType) {
+				return new NullableTypeNode($downgrade($node->type));
+			}
+
+			return $downgrade($node);
 		});
 	}
 
