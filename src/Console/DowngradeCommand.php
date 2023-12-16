@@ -33,12 +33,15 @@ use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Finder\Finder;
 use Symfony\Component\Finder\SplFileInfo;
 use function array_map;
+use function count;
 use function explode;
 use function file_get_contents;
 use function file_put_contents;
 use function fnmatch;
 use function getcwd;
 use function is_array;
+use function is_dir;
+use function is_file;
 use function is_string;
 use function preg_quote;
 use function sprintf;
@@ -233,8 +236,21 @@ class DowngradeCommand extends Command
 			return \true;
 		});
 		$files = [];
-		foreach ($finder->files()->name('*.php')->in($paths) as $fileInfo) {
-			$files[] = $fileInfo->getRealPath();
+		$directories = [];
+		foreach ($paths as $path) {
+			if (is_dir($path)) {
+				$directories[] = $path;
+			} elseif (is_file($path)) {
+				$files[] = $path;
+			} else {
+				throw new Exception(sprintf('Path %s does not exist', $path));
+			}
+		}
+
+		if (count($directories) > 0) {
+			foreach ($finder->files()->name('*.php')->in($directories) as $fileInfo) {
+				$files[] = $fileInfo->getRealPath();
+			}
 		}
 
 		return $files;
