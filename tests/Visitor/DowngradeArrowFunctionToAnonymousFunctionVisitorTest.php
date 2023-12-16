@@ -18,48 +18,26 @@ class DowngradeArrowFunctionToAnonymousFunctionVisitorTest extends AbstractVisit
 			<<<'PHP'
 <?php
 
-fn ($a) => $a + $b;
+$variantFn = fn ($acceptor) => new FunctionVariantWithPhpDocs(
+    array_map(
+        fn ($parameter) => new DummyParameterWithPhpDocs($parameter->getName()),
+        $acceptor->getParameters(),
+    )
+);
 PHP
 ,
 			<<<'PHP'
 <?php
 
-function ($a) use($b) {
-    return $a + $b;
-};
-PHP
-,
-		];
-
-		yield [
-			<<<'PHP'
-<?php
-
-fn ($a) => $a + $b + $b;
-PHP
-,
-			<<<'PHP'
-<?php
-
-function ($a) use($b) {
-    return $a + $b + $b;
-};
-PHP
-,
-		];
-
-		yield [
-			<<<'PHP'
-<?php
-
-fn () => $this->foo();
-PHP
-,
-			<<<'PHP'
-<?php
-
-function () {
-    return $this->foo();
+$variantFn = function ($acceptor) {
+    return new FunctionVariantWithPhpDocs(
+        array_map(
+            function ($parameter) {
+                return new DummyParameterWithPhpDocs($parameter->getName());
+            },
+            $acceptor->getParameters(),
+        )
+    );
 };
 PHP
 ,

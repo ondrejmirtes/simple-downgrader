@@ -3,7 +3,7 @@
 namespace SimpleDowngrader\Visitor;
 
 use PhpParser\Node;
-use PhpParser\NodeFinder;
+use PhpParser\NodeTraverser;
 use PhpParser\NodeVisitorAbstract;
 use function array_key_exists;
 use function is_string;
@@ -46,14 +46,15 @@ class DowngradeArrowFunctionToAnonymousFunctionVisitor extends NodeVisitorAbstra
 			$paramNames[$param->var->name] = true;
 		}
 
-		$nodeFinder = new NodeFinder();
-
 		$uses = [];
 		$alreadyUsed = [];
 
-		/** @var Node\Expr\Variable[] $variables */
-		$variables = $nodeFinder->findInstanceOf([$expr], Node\Expr\Variable::class);
-		foreach ($variables as $variable) {
+		$traverser = new NodeTraverser();
+		$visitor = new ImmediateScopeVariablesVisitor();
+		$traverser->addVisitor($visitor);
+		$traverser->traverse([$expr]);
+
+		foreach ($visitor->getVariables() as $variable) {
 			if (!is_string($variable->name)) {
 				continue;
 			}
