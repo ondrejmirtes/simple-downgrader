@@ -30,6 +30,23 @@ function ($a) use($b) {
 PHP
 ,
 		];
+
+		yield [
+			<<<'PHP'
+<?php
+
+fn ($a) => $a + $b + $b;
+PHP
+,
+			<<<'PHP'
+<?php
+
+function ($a) use($b) {
+    return $a + $b + $b;
+};
+PHP
+,
+		];
 	}
 
 }

@@ -49,6 +49,7 @@ class DowngradeArrowFunctionToAnonymousFunctionVisitor extends NodeVisitorAbstra
 		$nodeFinder = new NodeFinder();
 
 		$uses = [];
+		$alreadyUsed = [];
 
 		/** @var Node\Expr\Variable[] $variables */
 		$variables = $nodeFinder->findInstanceOf([$expr], Node\Expr\Variable::class);
@@ -61,7 +62,12 @@ class DowngradeArrowFunctionToAnonymousFunctionVisitor extends NodeVisitorAbstra
 				continue;
 			}
 
+			if (array_key_exists($variable->name, $alreadyUsed)) {
+				continue;
+			}
+
 			$uses[] = new Node\Expr\ClosureUse($variable);
+			$alreadyUsed[$variable->name] = true;
 		}
 
 		return $uses;
