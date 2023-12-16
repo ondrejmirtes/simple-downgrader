@@ -12,8 +12,10 @@ use PHPStan\PhpDocParser\Parser\PhpDocParser;
 use PHPStan\PhpDocParser\Parser\TokenIterator;
 use SimpleDowngrader\PhpDoc\PhpDocEditor;
 use function array_key_exists;
+use function array_pop;
 use function array_reverse;
 use function array_unshift;
+use function count;
 use function is_string;
 use function substr;
 
@@ -29,11 +31,11 @@ class DowngradePropertyPromotionVisitor extends NodeVisitorAbstract
 	/** @var PhpDocEditor */
 	private $phpDocEditor;
 
-	/** @var Node\Stmt\ClassLike|null */
-	private $inClass;
+	/** @var list<Node\Stmt\ClassLike> */
+	private $inClassStack = [];
 
-	/** @var Node\Stmt[]|null */
-	private $inClassStmts;
+	/** @var list<Node\Stmt[]> */
+	private $inClassStmtsStack = [];
 
 	public function __construct(
 		Lexer $lexer,
@@ -49,7 +51,7 @@ class DowngradePropertyPromotionVisitor extends NodeVisitorAbstract
 	public function enterNode(Node $node)
 	{
 		if ($node instanceof Node\Stmt\ClassLike) {
-			$this->inClass = $node;
+			$this->inClassStack[] = $node;
 			return null;
 		}
 
@@ -62,9 +64,12 @@ class DowngradePropertyPromotionVisitor extends NodeVisitorAbstract
 		if ($node->stmts === null) {
 			return null;
 		}
-		if ($this->inClass === null) {
+
+		if (count($this->inClassStack) === 0) {
 			return null;
 		}
+
+		$inClass = $this->inClassStack[count($this->inClassStack) - 1];
 
 		$promoted = [];
 		foreach ($node->params as $param) {
@@ -84,7 +89,7 @@ class DowngradePropertyPromotionVisitor extends NodeVisitorAbstract
 			}
 		}
 
-		$classStmts = $this->inClass->stmts;
+		$classStmts = $inClass->stmts;
 		$methodStmts = $node->stmts;
 		foreach (array_reverse($promoted) as $p) {
 			if (!$p->var instanceof Node\Expr\Variable || !is_string($p->var->name)) {
@@ -121,7 +126,7 @@ class DowngradePropertyPromotionVisitor extends NodeVisitorAbstract
 			$p->setAttribute('comments', []);
 		}
 
-		$this->inClassStmts = $classStmts;
+		$this->inClassStmtsStack[] = $classStmts;
 		$node->stmts = $methodStmts;
 
 		return $node;
@@ -130,12 +135,12 @@ class DowngradePropertyPromotionVisitor extends NodeVisitorAbstract
 	public function leaveNode(Node $node)
 	{
 		if ($node instanceof Node\Stmt\ClassLike) {
-			$this->inClass = null;
-			if ($this->inClassStmts === null) {
+			array_pop($this->inClassStack);
+			$stmts = array_pop($this->inClassStmtsStack);
+			if ($stmts === null) {
 				return null;
 			}
-			$stmts = $this->inClassStmts;
-			$this->inClassStmts = null;
+
 			if ($node->stmts === null) {
 				return null;
 			}
