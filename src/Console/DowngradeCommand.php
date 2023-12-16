@@ -15,6 +15,7 @@ use PHPStan\PhpDocParser\Printer\Printer;
 use SimpleDowngrader\Php\FollowedByCommaAnalyser;
 use SimpleDowngrader\Php\PhpPrinter;
 use SimpleDowngrader\PhpDoc\PhpDocEditor;
+use SimpleDowngrader\Visitor\DowngradeArrowFunctionToAnonymousFunctionVisitor;
 use SimpleDowngrader\Visitor\DowngradeMixedTypeVisitor;
 use SimpleDowngrader\Visitor\DowngradeNonCapturingCatchesVisitor;
 use SimpleDowngrader\Visitor\DowngradeNullCoalesceAssignOperatorVisitor;
@@ -204,7 +205,7 @@ class DowngradeCommand extends Command
 		if ($phpVersionId < 70400) {
 			$visitors[] = new DowngradeTypedPropertyVisitor($typeDowngraderHelper);
 			$visitors[] = new DowngradeNullCoalesceAssignOperatorVisitor();
-			//$visitors[] = new ArrowFunctionToAnonymousFunctionVisitor());
+			$visitors[] = new DowngradeArrowFunctionToAnonymousFunctionVisitor();
 		}
 
 		if ($phpVersionId < 70300) {
