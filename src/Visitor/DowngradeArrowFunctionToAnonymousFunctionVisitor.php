@@ -58,6 +58,10 @@ class DowngradeArrowFunctionToAnonymousFunctionVisitor extends NodeVisitorAbstra
 				continue;
 			}
 
+			if ($variable->name === 'this') {
+				continue;
+			}
+
 			if (array_key_exists($variable->name, $paramNames)) {
 				continue;
 			}

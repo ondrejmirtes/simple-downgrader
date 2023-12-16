@@ -47,6 +47,23 @@ function ($a) use($b) {
 PHP
 ,
 		];
+
+		yield [
+			<<<'PHP'
+<?php
+
+fn () => $this->foo();
+PHP
+,
+			<<<'PHP'
+<?php
+
+function () {
+    return $this->foo();
+};
+PHP
+,
+		];
 	}
 
 }
