@@ -24,6 +24,7 @@ use SimpleDowngrader\Visitor\DowngradeReadonlyPropertyVisitor;
 use SimpleDowngrader\Visitor\DowngradeStaticReturnTypeVisitor;
 use SimpleDowngrader\Visitor\DowngradeTrailingCommasInClosureUsesVisitor;
 use SimpleDowngrader\Visitor\DowngradeTrailingCommasInParametersVisitor;
+use SimpleDowngrader\Visitor\DowngradeTypedPropertyVisitor;
 use SimpleDowngrader\Visitor\DowngradeUnionTypeVisitor;
 use SimpleDowngrader\Visitor\TokensAwareVisitor;
 use SimpleDowngrader\Visitor\TypeDowngraderHelper;
@@ -199,7 +200,7 @@ class DowngradeCommand extends Command
 		}
 
 		if ($phpVersionId < 70400) {
-			//$visitors[] = new DowngradeTypedPropertyVisitor());
+			$visitors[] = new DowngradeTypedPropertyVisitor($typeDowngraderHelper);
 			//$visitors[] = new DowngradeNullCoalescingOperatorVisitor());
 			//$visitors[] = new ArrowFunctionToAnonymousFunctionVisitor());
 		}
