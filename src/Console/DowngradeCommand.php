@@ -15,19 +15,15 @@ use PHPStan\PhpDocParser\Printer\Printer;
 use SimpleDowngrader\Php\FollowedByCommaAnalyser;
 use SimpleDowngrader\Php\PhpPrinter;
 use SimpleDowngrader\PhpDoc\PhpDocEditor;
-use SimpleDowngrader\Visitor\DowngradeArrowFunctionToAnonymousFunctionVisitor;
 use SimpleDowngrader\Visitor\DowngradeMixedTypeVisitor;
 use SimpleDowngrader\Visitor\DowngradeNonCapturingCatchesVisitor;
-use SimpleDowngrader\Visitor\DowngradeNullCoalesceAssignOperatorVisitor;
 use SimpleDowngrader\Visitor\DowngradePropertyPromotionVisitor;
 use SimpleDowngrader\Visitor\DowngradePureIntersectionTypeVisitor;
 use SimpleDowngrader\Visitor\DowngradeReadonlyPromotedPropertyVisitor;
 use SimpleDowngrader\Visitor\DowngradeReadonlyPropertyVisitor;
 use SimpleDowngrader\Visitor\DowngradeStaticReturnTypeVisitor;
 use SimpleDowngrader\Visitor\DowngradeTrailingCommasInClosureUsesVisitor;
-use SimpleDowngrader\Visitor\DowngradeTrailingCommasInFunctionCallsVisitor;
 use SimpleDowngrader\Visitor\DowngradeTrailingCommasInParametersVisitor;
-use SimpleDowngrader\Visitor\DowngradeTypedPropertyVisitor;
 use SimpleDowngrader\Visitor\DowngradeUnionTypeVisitor;
 use SimpleDowngrader\Visitor\TokensAwareVisitor;
 use SimpleDowngrader\Visitor\TypeDowngraderHelper;
@@ -196,16 +192,6 @@ class DowngradeCommand extends Command
 			);
 			$visitors[] = new DowngradeMixedTypeVisitor($typeDowngraderHelper);
 			$visitors[] = new DowngradeStaticReturnTypeVisitor($typeDowngraderHelper);
-		}
-
-		if ($phpVersionId < 70400) {
-			$visitors[] = new DowngradeTypedPropertyVisitor($typeDowngraderHelper);
-			$visitors[] = new DowngradeNullCoalesceAssignOperatorVisitor();
-			$visitors[] = new DowngradeArrowFunctionToAnonymousFunctionVisitor();
-		}
-
-		if ($phpVersionId < 70300) {
-			$visitors[] = new DowngradeTrailingCommasInFunctionCallsVisitor($followedByCommaAnalyser);
 		}
 
 		return $visitors;
