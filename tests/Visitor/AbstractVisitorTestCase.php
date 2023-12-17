@@ -30,18 +30,12 @@ abstract class AbstractVisitorTestCase extends TestCase
 	 */
 	public function testVisitor(string $codeBefore, string $codeAfter): void
 	{
-		$lexer = new Emulative([
-			'usedAttributes' => [
-				'comments',
-				'startLine', 'endLine',
-				'startTokenPos', 'endTokenPos',
-			],
-		]);
+		$lexer = new Emulative();
 		$parser = new Php7($lexer);
 
 		/** @var Stmt[] $oldStmts */
 		$oldStmts = $parser->parse($codeBefore);
-		$oldTokens = $lexer->getTokens();
+		$oldTokens = $parser->getTokens();
 
 		$cloningTraverser = new NodeTraverser();
 		$cloningTraverser->addVisitor(new CloningVisitor());

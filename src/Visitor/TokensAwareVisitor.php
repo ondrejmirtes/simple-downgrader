@@ -2,11 +2,13 @@
 
 namespace SimpleDowngrader\Visitor;
 
+use PhpParser\Token;
+
 interface TokensAwareVisitor
 {
 
 	/**
-	 * @param mixed[] $tokens
+	 * @param Token[] $tokens
 	 */
 	public function setTokens(array $tokens): void;
 

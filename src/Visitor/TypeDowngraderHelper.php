@@ -38,10 +38,6 @@ class TypeDowngraderHelper
 					return null;
 				}
 
-				if ($node->type === null) {
-					return null;
-				}
-
 				$resultType = $callable($node->type);
 				if ($resultType === null) {
 					return null;
@@ -76,10 +72,6 @@ class TypeDowngraderHelper
 
 				$this->phpDocEditor->edit($node, static function (\PHPStan\PhpDocParser\Ast\Node $phpDocNode) use ($param, $callable) {
 					if (!$phpDocNode instanceof PhpDocNode) {
-						return null;
-					}
-
-					if ($param->type === null) {
 						return null;
 					}
 

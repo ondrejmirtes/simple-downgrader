@@ -18,8 +18,6 @@ jobs:
       matrix:
         operating-system: [ubuntu-latest, windows-latest]
         php-version:
-          - "7.2"
-          - "7.3"
           - "7.4"
           - "8.0"
           - "8.1"
@@ -64,11 +62,6 @@ jobs:
         working-directory: "phpstan-src"
         shell: bash
         run: "../bin/simple-downgrade downgrade -c build/downgrade.php ${{ matrix.php-version }}"
-
-      - name: "Downgrade PHPUnit"
-        working-directory: "phpstan-src"
-        if: matrix.php-version == '7.2'
-        run: "composer require --dev phpunit/phpunit:^8.5.31 brianium/paratest:^4.0 --update-with-dependencies --ignore-platform-reqs"
 
       - name: "Script"
         working-directory: "phpstan-src"

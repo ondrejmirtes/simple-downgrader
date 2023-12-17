@@ -30,7 +30,7 @@ class DowngradeArrowFunctionToAnonymousFunctionVisitor extends NodeVisitorAbstra
 
 	/**
 	 * @param Node\Param[] $params
-	 * @return list<Node\Expr\ClosureUse>
+	 * @return list<Node\ClosureUse>
 	 */
 	private function getUses(array $params, Node\Expr $expr): array
 	{
@@ -71,7 +71,7 @@ class DowngradeArrowFunctionToAnonymousFunctionVisitor extends NodeVisitorAbstra
 				continue;
 			}
 
-			$uses[] = new Node\Expr\ClosureUse($variable);
+			$uses[] = new Node\ClosureUse($variable);
 			$alreadyUsed[$variable->name] = true;
 		}
 

@@ -33,7 +33,7 @@ PHP
 
 class SomeClass
 {
-    public function doFoo($a, $b) : void
+    public function doFoo($a, $b): void
     {
     }
 }
@@ -61,7 +61,7 @@ PHP
 
 class SomeClass
 {
-    public function doFoo($a, $b) : void
+    public function doFoo($a, $b): void
     {
     }
 }

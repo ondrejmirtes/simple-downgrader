@@ -4,12 +4,12 @@ namespace SimpleDowngrader\Console;
 
 use Exception;
 use Nette\Utils\Strings;
-use PhpParser\Lexer;
 use PhpParser\Node\Stmt;
 use PhpParser\NodeTraverser;
 use PhpParser\NodeVisitor;
 use PhpParser\NodeVisitor\CloningVisitor;
 use PhpParser\Parser;
+use PHPStan\PhpDocParser\Lexer\Lexer;
 use PHPStan\PhpDocParser\Parser\PhpDocParser;
 use PHPStan\PhpDocParser\Printer\Printer;
 use SimpleDowngrader\Php\FollowedByCommaAnalyser;
@@ -62,13 +62,10 @@ class DowngradeCommand extends Command
 	/** @var Parser */
 	private $parser;
 
-	/** @var Lexer */
-	private $lexer;
-
 	/** @var PhpPrinter */
 	private $printer;
 
-	/** @var \PHPStan\PhpDocParser\Lexer\Lexer */
+	/** @var Lexer */
 	private $phpDocLexer;
 
 	/** @var PhpDocParser */
@@ -77,11 +74,10 @@ class DowngradeCommand extends Command
 	/** @var NodeTraverser */
 	private $cloningTraverser;
 
-	public function __construct(Parser $parser, Lexer $lexer, PhpPrinter $printer, \PHPStan\PhpDocParser\Lexer\Lexer $phpDocLexer, PhpDocParser $phpDocParser)
+	public function __construct(Parser $parser, PhpPrinter $printer, Lexer $phpDocLexer, PhpDocParser $phpDocParser)
 	{
 		parent::__construct();
 		$this->parser = $parser;
-		$this->lexer = $lexer;
 		$this->printer = $printer;
 		$this->phpDocLexer = $phpDocLexer;
 		$this->phpDocParser = $phpDocParser;
@@ -148,7 +144,7 @@ class DowngradeCommand extends Command
 
 		/** @var Stmt[] $oldStmts */
 		$oldStmts = $this->parser->parse($contents);
-		$oldTokens = $this->lexer->getTokens();
+		$oldTokens = $this->parser->getTokens();
 
 		/** @var Stmt[] $newStmts */
 		$newStmts = $this->cloningTraverser->traverse($oldStmts);

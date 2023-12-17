@@ -16,13 +16,7 @@ foreach ([__DIR__ . '/../../../autoload.php', __DIR__ . '/../vendor/autoload.php
 	}
 }
 
-$lexer = new \PhpParser\Lexer\Emulative([
-	'usedAttributes' => [
-		'comments',
-		'startLine', 'endLine',
-		'startTokenPos', 'endTokenPos',
-	],
-]);
+$lexer = new \PhpParser\Lexer\Emulative();
 
 $parser = new Php7($lexer);
 $printer = new PhpPrinter();
@@ -34,6 +28,6 @@ $phpDocParser = new PhpDocParser($typeParser, $constExprParser, true, true, $use
 $phpDocLexer = new PHPStan\PhpDocParser\Lexer\Lexer(true);
 
 $app = new Application();
-$app->add(new DowngradeCommand($parser, $lexer, $printer, $phpDocLexer, $phpDocParser));
+$app->add(new DowngradeCommand($parser, $printer, $phpDocLexer, $phpDocParser));
 $app->setCatchExceptions(false);
 $app->run();

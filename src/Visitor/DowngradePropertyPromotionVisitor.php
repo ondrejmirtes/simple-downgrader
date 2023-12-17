@@ -98,7 +98,7 @@ class DowngradePropertyPromotionVisitor extends NodeVisitorAbstract
 			$propertyNode = new Node\Stmt\Property(
 				$p->flags,
 				[
-					new Node\Stmt\PropertyProperty($p->var->name),
+					new Node\PropertyItem($p->var->name),
 				],
 				[
 					'comments' => $p->getComments(),
@@ -138,10 +138,6 @@ class DowngradePropertyPromotionVisitor extends NodeVisitorAbstract
 			array_pop($this->inClassStack);
 			$stmts = array_pop($this->inClassStmtsStack);
 			if ($stmts === null) {
-				return null;
-			}
-
-			if ($node->stmts === null) {
 				return null;
 			}
 

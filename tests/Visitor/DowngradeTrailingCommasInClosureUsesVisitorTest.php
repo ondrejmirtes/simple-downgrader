@@ -26,7 +26,7 @@ PHP
 			<<<'PHP'
 <?php
 
-function () use($foo) {
+function () use ($foo) {
 };
 PHP
 ,
@@ -46,7 +46,7 @@ PHP
 			<<<'PHP'
 <?php
 
-function () use($foo, $bar) {
+function () use ($foo, $bar) {
 };
 PHP
 ,
