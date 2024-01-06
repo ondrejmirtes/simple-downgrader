@@ -39,7 +39,7 @@ class PhpPrinterIndentationDetectorVisitor extends NodeVisitorAbstract
 			return null;
 		}
 
-		if (count($node->stmts) === 0) {
+		if ($node->stmts === null || count($node->stmts) === 0) {
 			return null;
 		}
 
