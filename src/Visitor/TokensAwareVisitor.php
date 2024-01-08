@@ -2,11 +2,14 @@
 
 namespace SimpleDowngrader\Visitor;
 
+/**
+ * @phpstan-type TokensArray array<string|array{int, string, int}>
+ */
 interface TokensAwareVisitor
 {
 
 	/**
-	 * @param mixed[] $tokens
+	 * @param TokensArray $tokens
 	 */
 	public function setTokens(array $tokens): void;
 

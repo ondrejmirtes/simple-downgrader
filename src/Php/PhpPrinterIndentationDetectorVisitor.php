@@ -39,11 +39,14 @@ class PhpPrinterIndentationDetectorVisitor extends NodeVisitorAbstract
 			return null;
 		}
 
-		if ($node->stmts === null || count($node->stmts) === 0) {
+		if (!is_array($node->stmts) || count($node->stmts) === 0) {
 			return null;
 		}
 
 		$firstStmt = $node->stmts[0];
+		if(!$firstStmt instanceof Node) {
+			return null;
+		}
 		$text = $this->origTokens->getTokenCode($node->getStartTokenPos(), $firstStmt->getStartTokenPos(), 0);
 
 		$c = preg_match_all('~\n([\\x09\\x20]*)~', $text, $matches, PREG_SET_ORDER);

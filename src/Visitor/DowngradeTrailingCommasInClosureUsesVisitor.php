@@ -8,13 +8,16 @@ use SimpleDowngrader\Php\FollowedByCommaAnalyser;
 use SimpleDowngrader\Php\PhpPrinter;
 use function count;
 
+/**
+ * @phpstan-import-type TokensArray from TokensAwareVisitor
+ */
 class DowngradeTrailingCommasInClosureUsesVisitor extends NodeVisitorAbstract implements TokensAwareVisitor
 {
 
 	/** @var FollowedByCommaAnalyser */
 	private $followedByCommaAnalyzer;
 
-	/** @var mixed[] */
+	/** @var TokensArray */
 	private $tokens;
 
 	public function __construct(FollowedByCommaAnalyser $followedByCommaAnalyzer)
@@ -23,7 +26,7 @@ class DowngradeTrailingCommasInClosureUsesVisitor extends NodeVisitorAbstract im
 	}
 
 	/**
-	 * @param mixed[] $tokens
+	 * @param TokensArray $tokens
 	 */
 	public function setTokens(array $tokens): void
 	{

@@ -63,7 +63,7 @@ class PhpPrinter extends Standard
 	}
 
 	/**
-	 * @param array<mixed> $nodes
+	 * @param Node[] $nodes
 	 */
 	protected function pCommaSeparated(array $nodes): string
 	{
@@ -72,9 +72,6 @@ class PhpPrinter extends Standard
 			return $result;
 		}
 		$last = $nodes[count($nodes) - 1];
-		if (!$last instanceof Node) {
-			return $result;
-		}
 
 		$trailingComma = $last->getAttribute(self::FUNC_ARGS_TRAILING_COMMA_ATTRIBUTE);
 		if ($trailingComma === false) {
