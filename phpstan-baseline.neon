@@ -1,6 +1,2 @@
 parameters:
 	ignoreErrors:
-		-
-			message: "#^Method SimpleDowngrader\\\\PhpDoc\\\\CallbackVisitor\\:\\:enterNode\\(\\) should return 1\\|2\\|3\\|4\\|array\\<PHPStan\\\\PhpDocParser\\\\Ast\\\\Node\\>\\|PHPStan\\\\PhpDocParser\\\\Ast\\\\Node\\|null but returns mixed\\.$#"
-			count: 1
-			path: src/PhpDoc/CallbackVisitor.php
