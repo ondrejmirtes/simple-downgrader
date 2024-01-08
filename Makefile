@@ -23,4 +23,4 @@ phpstan:
 
 .PHONY: phpstan-generate-baseline
 phpstan-generate-baseline:
-	php -d memory_limit=448M vendor/bin/phpstan --generate-baseline
+	php vendor/bin/phpstan --generate-baseline
