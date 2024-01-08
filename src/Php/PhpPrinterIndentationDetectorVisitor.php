@@ -7,6 +7,7 @@ use PhpParser\Node;
 use PhpParser\NodeTraverser;
 use PhpParser\NodeVisitorAbstract;
 use function count;
+use function is_array;
 use function preg_match;
 use function preg_match_all;
 use function property_exists;
@@ -44,7 +45,7 @@ class PhpPrinterIndentationDetectorVisitor extends NodeVisitorAbstract
 		}
 
 		$firstStmt = $node->stmts[0];
-		if(!$firstStmt instanceof Node) {
+		if (!$firstStmt instanceof Node) {
 			return null;
 		}
 		$text = $this->origTokens->getTokenCode($node->getStartTokenPos(), $firstStmt->getStartTokenPos(), 0);
