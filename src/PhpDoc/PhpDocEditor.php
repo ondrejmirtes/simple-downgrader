@@ -33,7 +33,7 @@ class PhpDocEditor
 	}
 
 	/**
-	 * @param callable(Node): mixed $callback
+	 * @param callable(Node): (Node|Node[]|null) $callback
 	 */
 	public function edit(\PhpParser\Node $node, callable $callback): void
 	{

@@ -8,10 +8,10 @@ use PHPStan\PhpDocParser\Ast\Node;
 class CallbackVisitor extends AbstractNodeVisitor
 {
 
-	/** @var callable(Node): mixed */
+	/** @var callable(Node): (Node|Node[]|null) */
 	private $callback;
 
-	/** @param callable(Node): mixed $callback */
+	/** @param callable(Node): (Node|Node[]|null) $callback */
 	public function __construct(callable $callback)
 	{
 		$this->callback = $callback;

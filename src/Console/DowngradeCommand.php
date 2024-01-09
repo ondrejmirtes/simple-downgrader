@@ -117,7 +117,9 @@ class DowngradeCommand extends Command
 			return 1;
 		}
 
+		/** @var list<string> $paths */
 		$paths = $configArray['paths'];
+		/** @var list<string> $excludePaths */
 		$excludePaths = $configArray['excludePaths'];
 
 		$files = $this->findFiles($paths, $excludePaths);
