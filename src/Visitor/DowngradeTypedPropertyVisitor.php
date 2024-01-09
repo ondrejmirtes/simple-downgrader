@@ -28,7 +28,7 @@ class DowngradeTypedPropertyVisitor extends NodeVisitorAbstract
 			return null;
 		}
 
-		$downgrade = static function ($node): TypeNode {
+		$downgrade = static function (object $node): TypeNode {
 			if ($node instanceof Node\Identifier) {
 				return new IdentifierTypeNode($node->toString());
 			}

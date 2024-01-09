@@ -53,6 +53,9 @@ use function preg_quote;
 use function sprintf;
 use function str_replace;
 
+/**
+ * @phpstan-import-type TokensArray from TokensAwareVisitor
+ */
 class DowngradeCommand extends Command
 {
 
@@ -125,7 +128,9 @@ class DowngradeCommand extends Command
 			return 1;
 		}
 
+		/** @var list<string> $paths */
 		$paths = $configArray['paths'];
+		/** @var list<string> $excludePaths */
 		$excludePaths = $configArray['excludePaths'];
 
 		$files = $this->findFiles($paths, $excludePaths);
@@ -148,6 +153,7 @@ class DowngradeCommand extends Command
 
 		/** @var Stmt[] $oldStmts */
 		$oldStmts = $this->parser->parse($contents);
+		/** @var TokensArray $oldTokens */
 		$oldTokens = $this->lexer->getTokens();
 
 		/** @var Stmt[] $newStmts */

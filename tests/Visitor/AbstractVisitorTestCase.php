@@ -17,6 +17,9 @@ use PHPUnit\Framework\TestCase;
 use SimpleDowngrader\Php\PhpPrinter;
 use SimpleDowngrader\PhpDoc\PhpDocEditor;
 
+/**
+ * @phpstan-import-type TokensArray from TokensAwareVisitor
+ */
 abstract class AbstractVisitorTestCase extends TestCase
 {
 
@@ -41,6 +44,7 @@ abstract class AbstractVisitorTestCase extends TestCase
 
 		/** @var Stmt[] $oldStmts */
 		$oldStmts = $parser->parse($codeBefore);
+		/** @var TokensArray $oldTokens */
 		$oldTokens = $lexer->getTokens();
 
 		$cloningTraverser = new NodeTraverser();

@@ -1,8 +1,11 @@
 includes:
 	- vendor/phpstan/phpstan/conf/bleedingEdge.neon
+	- phpstan-baseline.neon
 
 parameters:
-	level: 8
+	level: 9
 	paths:
 		- src
 		- tests
+
+	checkImplicitMixed: true

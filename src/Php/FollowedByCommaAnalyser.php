@@ -4,18 +4,21 @@ namespace SimpleDowngrader\Php;
 
 use Nette\Utils\Strings;
 use PhpParser\Node;
+use SimpleDowngrader\Visitor\TokensAwareVisitor;
 use function in_array;
 use function is_array;
 
 /**
  * Taken from https://github.com/rectorphp/rector-downgrade-php/blob/917085c6a2a99412440cd3143288d1a17abb5c44/rules/DowngradePhp73/Tokenizer/FollowedByCommaAnalyzer.php
  * (c) 2017-present Tomáš Votruba (https://tomasvotruba.cz)
+ *
+ * @phpstan-import-type TokensArray from TokensAwareVisitor
  */
 class FollowedByCommaAnalyser
 {
 
 	/**
-	 * @param mixed[] $tokens
+	 * @param TokensArray $tokens
 	 */
 	public function isFollowed(array $tokens, Node $node): bool
 	{
