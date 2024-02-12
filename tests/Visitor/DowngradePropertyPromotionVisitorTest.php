@@ -178,6 +178,70 @@ class SomeClass
 PHP
 ,
 		];
+
+		yield [
+			<<<'PHP'
+<?php
+
+class SomeClass
+{
+    public function __construct(private Test $test)
+    {
+
+    }
+
+    public function doFoo()
+    {
+    	$traverser->addVisitor(new class () extends NodeVisitorAbstract {
+			/**
+			 * @return ExistingArrayDimFetch|null
+			 */
+			public function leaveNode(Node $node)
+			{
+				if (!$node instanceof ArrayDimFetch || $node->dim === null) {
+					return null;
+				}
+
+				return new ExistingArrayDimFetch($node->var, $node->dim);
+			}
+
+		});
+    }
+}
+PHP
+,
+			<<<'PHP'
+<?php
+
+class SomeClass
+{
+    private Test $test;
+    public function __construct(Test $test)
+    {
+        $this->test = $test;
+    }
+
+    public function doFoo()
+    {
+    	$traverser->addVisitor(new class () extends NodeVisitorAbstract {
+			/**
+			 * @return ExistingArrayDimFetch|null
+			 */
+			public function leaveNode(Node $node)
+			{
+				if (!$node instanceof ArrayDimFetch || $node->dim === null) {
+					return null;
+				}
+
+				return new ExistingArrayDimFetch($node->var, $node->dim);
+			}
+
+		});
+    }
+}
+PHP
+,
+		];
 	}
 
 }
