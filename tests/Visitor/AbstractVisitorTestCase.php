@@ -12,6 +12,7 @@ use PHPStan\PhpDocParser\Lexer\Lexer;
 use PHPStan\PhpDocParser\Parser\ConstExprParser;
 use PHPStan\PhpDocParser\Parser\PhpDocParser;
 use PHPStan\PhpDocParser\Parser\TypeParser;
+use PHPStan\PhpDocParser\ParserConfig;
 use PHPStan\PhpDocParser\Printer\Printer;
 use PHPUnit\Framework\TestCase;
 use SimpleDowngrader\Php\PhpPrinter;
@@ -61,18 +62,18 @@ abstract class AbstractVisitorTestCase extends TestCase
 
 	public function createPhpDocParser(): PhpDocParser
 	{
-		$usedAttributes = ['lines' => true, 'indexes' => true];
-		$constExprParser = new ConstExprParser(true, true, $usedAttributes);
-		$typeParser = new TypeParser($constExprParser, true, $usedAttributes);
+		$phpDocParserConfig = new ParserConfig(['lines' => true, 'indexes' => true]);
+		$constExprParser = new ConstExprParser($phpDocParserConfig);
+		$typeParser = new TypeParser($phpDocParserConfig, $constExprParser);
 
-		return new PhpDocParser($typeParser, $constExprParser, true, true, $usedAttributes, true, true);
+		return new PhpDocParser($phpDocParserConfig, $typeParser, $constExprParser);
 	}
 
 	public function createPhpDocEditor(): PhpDocEditor
 	{
 		return new PhpDocEditor(
 			new Printer(),
-			new Lexer(true),
+			new Lexer(new ParserConfig([])),
 			$this->createPhpDocParser()
 		);
 	}

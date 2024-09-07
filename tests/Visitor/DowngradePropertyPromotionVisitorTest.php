@@ -4,6 +4,7 @@ namespace SimpleDowngrader\Visitor;
 
 use PhpParser\NodeVisitor;
 use PHPStan\PhpDocParser\Lexer\Lexer;
+use PHPStan\PhpDocParser\ParserConfig;
 
 class DowngradePropertyPromotionVisitorTest extends AbstractVisitorTestCase
 {
@@ -11,7 +12,7 @@ class DowngradePropertyPromotionVisitorTest extends AbstractVisitorTestCase
 	protected function getVisitor(): NodeVisitor
 	{
 		return new DowngradePropertyPromotionVisitor(
-			new Lexer(true),
+			new Lexer(new ParserConfig([])),
 			$this->createPhpDocParser(),
 			$this->createPhpDocEditor()
 		);
