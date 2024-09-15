@@ -92,7 +92,8 @@ class TypeDowngraderHelper
 						$resultType,
 						$param->variadic,
 						'$' . $param->var->name,
-						''
+						'',
+						false,
 					));
 
 					return $phpDocNode;
