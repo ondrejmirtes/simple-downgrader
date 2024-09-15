@@ -74,7 +74,7 @@ abstract class AbstractVisitorTestCase extends TestCase
 		return new PhpDocEditor(
 			new Printer(),
 			new Lexer(new ParserConfig([])),
-			$this->createPhpDocParser()
+			$this->createPhpDocParser(),
 		);
 	}
 

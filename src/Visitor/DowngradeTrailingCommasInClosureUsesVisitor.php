@@ -12,11 +12,10 @@ use function count;
 class DowngradeTrailingCommasInClosureUsesVisitor extends NodeVisitorAbstract implements TokensAwareVisitor
 {
 
-	/** @var FollowedByCommaAnalyser */
-	private $followedByCommaAnalyzer;
+	private FollowedByCommaAnalyser $followedByCommaAnalyzer;
 
 	/** @var Token[] */
-	private $tokens;
+	private array $tokens;
 
 	public function __construct(FollowedByCommaAnalyser $followedByCommaAnalyzer)
 	{

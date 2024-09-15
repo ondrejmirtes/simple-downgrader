@@ -16,14 +16,11 @@ use function count;
 class PhpDocEditor
 {
 
-	/** @var Lexer */
-	private $lexer;
+	private Lexer $lexer;
 
-	/** @var PhpDocParser */
-	private $phpDocParser;
+	private PhpDocParser $phpDocParser;
 
-	/** @var Printer */
-	private $printer;
+	private Printer $printer;
 
 	public function __construct(Printer $printer, Lexer $lexer, PhpDocParser $phpDocParser)
 	{

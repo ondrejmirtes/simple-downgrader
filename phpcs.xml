@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <ruleset name="Simple Downgrader Coding Standard">
-	<config name="php_version" value="70200"/>
+	<config name="php_version" value="70400"/>
 	<arg name="colors"/>
 	<arg name="extensions" value="php"/>
 	<arg name="encoding" value="utf-8"/>
@@ -115,5 +115,21 @@
 	</rule>
 	<rule ref="PSR1.Methods.CamelCapsMethodName.NotCamelCaps"/>
 	<rule ref="Consistence.NamingConventions.ValidVariableName.NotCamelCaps"/>
+	<rule ref="SlevomatCodingStandard.Functions.DisallowTrailingCommaInCall">
+		<properties>
+			<property name="onlySingleLine" value="true"/>
+		</properties>
+	</rule>
+	<rule ref="SlevomatCodingStandard.Functions.RequireTrailingCommaInCall">
+		<properties>
+			<property name="enable" value="true"/>
+		</properties>
+	</rule>
+	<rule ref="SlevomatCodingStandard.Functions.RequireArrowFunction">
+		<properties>
+			<property name="enable" value="true"/>
+		</properties>
+	</rule>
+	<rule ref="SlevomatCodingStandard.Functions.ArrowFunctionDeclaration"/>
 	<exclude-pattern>tests/*/data</exclude-pattern>
 </ruleset>

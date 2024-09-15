@@ -55,20 +55,15 @@ class DowngradeCommand extends Command
 	private const STARTS_WITH_ASTERISK_REGEX = '#^\\*(.*?)[^*]$#';
 	private const ENDS_WITH_ASTERISK_REGEX = '#^[^*](.*?)\\*$#';
 
-	/** @var Parser */
-	private $parser;
+	private Parser $parser;
 
-	/** @var PhpPrinter */
-	private $printer;
+	private PhpPrinter $printer;
 
-	/** @var Lexer */
-	private $phpDocLexer;
+	private Lexer $phpDocLexer;
 
-	/** @var PhpDocParser */
-	private $phpDocParser;
+	private PhpDocParser $phpDocParser;
 
-	/** @var NodeTraverser */
-	private $cloningTraverser;
+	private NodeTraverser $cloningTraverser;
 
 	public function __construct(Parser $parser, PhpPrinter $printer, Lexer $phpDocLexer, PhpDocParser $phpDocParser)
 	{
@@ -190,7 +185,7 @@ class DowngradeCommand extends Command
 			$visitors[] = new DowngradePropertyPromotionVisitor(
 				$this->phpDocLexer,
 				$this->phpDocParser,
-				$phpDocEditor
+				$phpDocEditor,
 			);
 			$visitors[] = new DowngradeMixedTypeVisitor($typeDowngraderHelper);
 			$visitors[] = new DowngradeStaticReturnTypeVisitor($typeDowngraderHelper);

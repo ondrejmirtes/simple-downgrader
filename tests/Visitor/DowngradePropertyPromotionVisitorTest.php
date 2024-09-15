@@ -14,7 +14,7 @@ class DowngradePropertyPromotionVisitorTest extends AbstractVisitorTestCase
 		return new DowngradePropertyPromotionVisitor(
 			new Lexer(new ParserConfig([])),
 			$this->createPhpDocParser(),
-			$this->createPhpDocEditor()
+			$this->createPhpDocEditor(),
 		);
 	}
 

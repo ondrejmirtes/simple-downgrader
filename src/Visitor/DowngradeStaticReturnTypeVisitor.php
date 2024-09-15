@@ -10,8 +10,7 @@ use PHPStan\PhpDocParser\Ast\Type\TypeNode;
 class DowngradeStaticReturnTypeVisitor extends NodeVisitorAbstract
 {
 
-	/** @var TypeDowngraderHelper */
-	private $typeDowngraderHelper;
+	private TypeDowngraderHelper $typeDowngraderHelper;
 
 	public function __construct(TypeDowngraderHelper $typeDowngraderHelper)
 	{

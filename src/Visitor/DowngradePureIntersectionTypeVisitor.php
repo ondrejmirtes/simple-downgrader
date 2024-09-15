@@ -12,8 +12,7 @@ use function array_map;
 class DowngradePureIntersectionTypeVisitor extends NodeVisitorAbstract
 {
 
-	/** @var TypeDowngraderHelper */
-	private $typeDowngraderHelper;
+	private TypeDowngraderHelper $typeDowngraderHelper;
 
 	public function __construct(TypeDowngraderHelper $typeDowngraderHelper)
 	{

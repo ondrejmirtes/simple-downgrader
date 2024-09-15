@@ -13,8 +13,7 @@ use function array_map;
 class DowngradeUnionTypeVisitor extends NodeVisitorAbstract
 {
 
-	/** @var TypeDowngraderHelper */
-	private $typeDowngraderHelper;
+	private TypeDowngraderHelper $typeDowngraderHelper;
 
 	public function __construct(TypeDowngraderHelper $typeDowngraderHelper)
 	{

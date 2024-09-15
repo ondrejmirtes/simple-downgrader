@@ -12,8 +12,7 @@ use SimpleDowngrader\PhpDoc\PhpDocEditor;
 class DowngradeReadonlyPropertyVisitor extends NodeVisitorAbstract
 {
 
-	/** @var PhpDocEditor */
-	private $phpDocEditor;
+	private PhpDocEditor $phpDocEditor;
 
 	public function __construct(PhpDocEditor $phpDocEditor)
 	{

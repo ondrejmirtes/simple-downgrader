@@ -20,14 +20,11 @@ use function substr;
 class DowngradePropertyPromotionVisitor extends NodeVisitorAbstract
 {
 
-	/** @var Lexer */
-	private $lexer;
+	private Lexer $lexer;
 
-	/** @var PhpDocParser */
-	private $phpDocParser;
+	private PhpDocParser $phpDocParser;
 
-	/** @var PhpDocEditor */
-	private $phpDocEditor;
+	private PhpDocEditor $phpDocEditor;
 
 	public function __construct(
 		Lexer $lexer,
@@ -87,7 +84,7 @@ class DowngradePropertyPromotionVisitor extends NodeVisitorAbstract
 							'comments' => $p->getComments(),
 						],
 						$p->type,
-						$p->attrGroups
+						$p->attrGroups,
 					);
 					if (array_key_exists($p->var->name, $phpDocParams)) {
 						$this->phpDocEditor->edit($propertyNode, static function (\PHPStan\PhpDocParser\Ast\Node $phpDocNode) use ($phpDocParams, $p) {
@@ -102,8 +99,8 @@ class DowngradePropertyPromotionVisitor extends NodeVisitorAbstract
 					array_unshift($methodStmts, new Node\Stmt\Expression(
 						new Node\Expr\Assign(
 							new Node\Expr\PropertyFetch(new Node\Expr\Variable('this'), $p->var->name),
-							$p->var
-						)
+							$p->var,
+						),
 					));
 					$p->flags = 0;
 					$p->setAttribute('comments', []);

@@ -19,8 +19,7 @@ use function is_string;
 class TypeDowngraderHelper
 {
 
-	/** @var PhpDocEditor */
-	private $phpDocEditor;
+	private PhpDocEditor $phpDocEditor;
 
 	public function __construct(PhpDocEditor $phpDocEditor)
 	{
@@ -51,7 +50,7 @@ class TypeDowngraderHelper
 				$phpDocNode->children[] = new PhpDocTagNode('@var', new VarTagValueNode(
 					$resultType,
 					'',
-					''
+					'',
 				));
 
 				return $phpDocNode;
@@ -122,7 +121,7 @@ class TypeDowngraderHelper
 					}
 					$phpDocNode->children[] = new PhpDocTagNode('@return', new ReturnTagValueNode(
 						$resultType,
-						''
+						'',
 					));
 
 					return $phpDocNode;

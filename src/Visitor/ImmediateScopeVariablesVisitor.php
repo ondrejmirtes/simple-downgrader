@@ -15,10 +15,10 @@ class ImmediateScopeVariablesVisitor extends NodeVisitorAbstract
 {
 
 	/** @var list<Variable> */
-	private $variables = [];
+	private array $variables = [];
 
 	/** @var list<array<string, true>> */
-	private $parametersStack = [];
+	private array $parametersStack = [];
 
 	/**
 	 * @return list<Variable>

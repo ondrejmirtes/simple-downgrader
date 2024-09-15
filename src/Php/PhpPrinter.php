@@ -14,11 +14,9 @@ class PhpPrinter extends Standard
 
 	public const FUNC_ARGS_TRAILING_COMMA_ATTRIBUTE = 'trailing_comma';
 
-	/** @var string */
-	private $indentCharacter = ' ';
+	private string $indentCharacter = ' ';
 
-	/** @var int */
-	private $indentSize = 4;
+	private int $indentSize = 4;
 
 	protected function resetState(): void
 	{
