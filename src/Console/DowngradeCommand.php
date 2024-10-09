@@ -4,6 +4,7 @@ namespace SimpleDowngrader\Console;
 
 use Exception;
 use Nette\Utils\Strings;
+use PhpParser\Internal\TokenStream;
 use PhpParser\Node\Stmt;
 use PhpParser\NodeTraverser;
 use PhpParser\NodeVisitor;
@@ -14,6 +15,7 @@ use PHPStan\PhpDocParser\Parser\PhpDocParser;
 use PHPStan\PhpDocParser\Printer\Printer;
 use SimpleDowngrader\Php\FollowedByCommaAnalyser;
 use SimpleDowngrader\Php\PhpPrinter;
+use SimpleDowngrader\Php\PhpPrinterIndentationDetectorVisitor;
 use SimpleDowngrader\PhpDoc\PhpDocEditor;
 use SimpleDowngrader\Visitor\DowngradeMixedTypeVisitor;
 use SimpleDowngrader\Visitor\DowngradeNonCapturingCatchesVisitor;
@@ -47,6 +49,7 @@ use function is_file;
 use function is_string;
 use function preg_quote;
 use function sprintf;
+use function str_repeat;
 use function str_replace;
 
 class DowngradeCommand extends Command
@@ -57,19 +60,16 @@ class DowngradeCommand extends Command
 
 	private Parser $parser;
 
-	private PhpPrinter $printer;
-
 	private Lexer $phpDocLexer;
 
 	private PhpDocParser $phpDocParser;
 
 	private NodeTraverser $cloningTraverser;
 
-	public function __construct(Parser $parser, PhpPrinter $printer, Lexer $phpDocLexer, PhpDocParser $phpDocParser)
+	public function __construct(Parser $parser, Lexer $phpDocLexer, PhpDocParser $phpDocParser)
 	{
 		parent::__construct();
 		$this->parser = $parser;
-		$this->printer = $printer;
 		$this->phpDocLexer = $phpDocLexer;
 		$this->phpDocParser = $phpDocParser;
 		$this->cloningTraverser = new NodeTraverser();
@@ -142,6 +142,9 @@ class DowngradeCommand extends Command
 		/** @var Stmt[] $newStmts */
 		$newStmts = $this->cloningTraverser->traverse($oldStmts);
 
+		$indentDetector = new PhpPrinterIndentationDetectorVisitor(new TokenStream($oldTokens, PhpPrinter::TAB_WIDTH));
+		$visitors[] = $indentDetector;
+
 		foreach ($visitors as $visitor) {
 			$traverser = new NodeTraverser();
 			$traverser->addVisitor($visitor);
@@ -154,7 +157,8 @@ class DowngradeCommand extends Command
 			$newStmts = $traverser->traverse($newStmts);
 		}
 
-		$newCode = $this->printer->printFormatPreserving($newStmts, $oldStmts, $oldTokens);
+		$printer = new PhpPrinter(['indent' => str_repeat($indentDetector->indentCharacter, $indentDetector->indentSize)]);
+		$newCode = $printer->printFormatPreserving($newStmts, $oldStmts, $oldTokens);
 		$result = file_put_contents($file, $newCode);
 		if ($result === false) {
 			throw new Exception(sprintf('%s could not be written', $file));

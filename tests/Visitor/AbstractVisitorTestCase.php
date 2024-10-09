@@ -2,6 +2,7 @@
 
 namespace SimpleDowngrader\Visitor;
 
+use PhpParser\Internal\TokenStream;
 use PhpParser\Lexer\Emulative;
 use PhpParser\Node\Stmt;
 use PhpParser\NodeTraverser;
@@ -16,7 +17,9 @@ use PHPStan\PhpDocParser\ParserConfig;
 use PHPStan\PhpDocParser\Printer\Printer;
 use PHPUnit\Framework\TestCase;
 use SimpleDowngrader\Php\PhpPrinter;
+use SimpleDowngrader\Php\PhpPrinterIndentationDetectorVisitor;
 use SimpleDowngrader\PhpDoc\PhpDocEditor;
+use function str_repeat;
 
 abstract class AbstractVisitorTestCase extends TestCase
 {
@@ -38,6 +41,11 @@ abstract class AbstractVisitorTestCase extends TestCase
 		$oldStmts = $parser->parse($codeBefore);
 		$oldTokens = $parser->getTokens();
 
+		$indentTraverser = new NodeTraverser();
+		$indentDetector = new PhpPrinterIndentationDetectorVisitor(new TokenStream($oldTokens, PhpPrinter::TAB_WIDTH));
+		$indentTraverser->addVisitor($indentDetector);
+		$indentTraverser->traverse($oldStmts);
+
 		$cloningTraverser = new NodeTraverser();
 		$cloningTraverser->addVisitor(new CloningVisitor());
 
@@ -54,7 +62,7 @@ abstract class AbstractVisitorTestCase extends TestCase
 		/** @var Stmt[] $newStmts */
 		$newStmts = $traverser->traverse($newStmts);
 
-		$printer = new PhpPrinter();
+		$printer = new PhpPrinter(['indent' => str_repeat($indentDetector->indentCharacter, $indentDetector->indentSize)]);
 		$newCode = $printer->printFormatPreserving($newStmts, $oldStmts, $oldTokens);
 
 		$this->assertSame($codeAfter, $newCode);
