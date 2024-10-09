@@ -12,6 +12,7 @@ jobs:
   test:
     name: "Integration Test"
     runs-on: ${{ matrix.operating-system }}
+    timeout-minutes: 10
 
     strategy:
       fail-fast: false

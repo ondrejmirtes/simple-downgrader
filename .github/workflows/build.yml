@@ -12,6 +12,7 @@ jobs:
   lint:
     name: "Lint"
     runs-on: "ubuntu-latest"
+    timeout-minutes: 10
 
     strategy:
       fail-fast: false
@@ -46,6 +47,7 @@ jobs:
     name: "Coding Standard"
 
     runs-on: "ubuntu-latest"
+    timeout-minutes: 10
 
     steps:
       - name: "Checkout"
@@ -72,6 +74,7 @@ jobs:
   tests:
     name: "Tests"
     runs-on: ${{ matrix.operating-system }}
+    timeout-minutes: 10
 
     strategy:
       fail-fast: false
@@ -111,6 +114,7 @@ jobs:
   static-analysis:
     name: "PHPStan"
     runs-on: "ubuntu-latest"
+    timeout-minutes: 10
 
     strategy:
       fail-fast: false
