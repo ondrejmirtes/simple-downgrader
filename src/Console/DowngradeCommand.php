@@ -142,8 +142,10 @@ class DowngradeCommand extends Command
 		/** @var Stmt[] $newStmts */
 		$newStmts = $this->cloningTraverser->traverse($oldStmts);
 
+		$indentTraverser = new NodeTraverser();
 		$indentDetector = new PhpPrinterIndentationDetectorVisitor(new TokenStream($oldTokens, PhpPrinter::TAB_WIDTH));
-		$visitors[] = $indentDetector;
+		$indentTraverser->addVisitor($indentDetector);
+		$indentTraverser->traverse($oldStmts);
 
 		foreach ($visitors as $visitor) {
 			$traverser = new NodeTraverser();
