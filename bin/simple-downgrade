@@ -20,7 +20,6 @@ foreach ([__DIR__ . '/../../../autoload.php', __DIR__ . '/../vendor/autoload.php
 $lexer = new \PhpParser\Lexer\Emulative();
 
 $parser = new Php7($lexer);
-$printer = new PhpPrinter();
 
 $phpDocParserConfig = new ParserConfig(['lines' => true, 'indexes' => true]);
 $constExprParser = new ConstExprParser($phpDocParserConfig);
@@ -29,6 +28,6 @@ $phpDocParser = new PhpDocParser($phpDocParserConfig, $typeParser, $constExprPar
 $phpDocLexer = new PHPStan\PhpDocParser\Lexer\Lexer($phpDocParserConfig);
 
 $app = new Application();
-$app->add(new DowngradeCommand($parser, $printer, $phpDocLexer, $phpDocParser));
+$app->add(new DowngradeCommand($parser, $phpDocLexer, $phpDocParser));
 $app->setCatchExceptions(false);
 $app->run();
