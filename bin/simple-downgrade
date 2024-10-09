@@ -29,6 +29,6 @@ $phpDocParser = new PhpDocParser($phpDocParserConfig, $typeParser, $constExprPar
 $phpDocLexer = new PHPStan\PhpDocParser\Lexer\Lexer($phpDocParserConfig);
 
 $app = new Application();
-$app->add(new DowngradeCommand($parser, $printer, $phpDocLexer, $phpDocParser));
+$app->add(new DowngradeCommand($parser, $phpDocLexer, $phpDocParser));
 $app->setCatchExceptions(false);
 $app->run();
