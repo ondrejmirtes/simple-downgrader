@@ -64,6 +64,10 @@ jobs:
         shell: bash
         run: "../bin/simple-downgrade downgrade -c build/downgrade.php ${{ matrix.php-version }}"
 
+      - name: "Dump autoloader one more time"
+        working-directory: "phpstan-src"
+        run: "composer dump"
+
       - name: "Script"
         working-directory: "phpstan-src"
         shell: bash
