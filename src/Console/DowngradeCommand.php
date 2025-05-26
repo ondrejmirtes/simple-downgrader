@@ -19,6 +19,7 @@ use PHPStan\BetterReflection\SourceLocator\Type\PhpInternalSourceLocator;
 use PHPStan\PhpDocParser\Lexer\Lexer;
 use PHPStan\PhpDocParser\Parser\PhpDocParser;
 use PHPStan\PhpDocParser\Printer\Printer;
+use SimpleDowngrader\BetterReflection\MemoizingReflector;
 use SimpleDowngrader\Php\FollowedByCommaAnalyser;
 use SimpleDowngrader\Php\PhpPrinter;
 use SimpleDowngrader\Php\PhpPrinterIndentationDetectorVisitor;
@@ -212,11 +213,13 @@ class DowngradeCommand extends Command
 				$betterReflection = new BetterReflection();
 				$astLocator = $betterReflection->astLocator();
 				$sourceStubber = $betterReflection->sourceStubber();
-				$reflector = new DefaultReflector(
-					new MemoizingSourceLocator(new AggregateSourceLocator([
-						(new MakeLocatorForComposerJsonAndInstalledJson())(dirname($composerJsonPath), $astLocator),
-						new PhpInternalSourceLocator($astLocator, $sourceStubber),
-					])),
+				$reflector = new MemoizingReflector(
+					new DefaultReflector(
+						new MemoizingSourceLocator(new AggregateSourceLocator([
+							(new MakeLocatorForComposerJsonAndInstalledJson())(dirname($composerJsonPath), $astLocator),
+							new PhpInternalSourceLocator($astLocator, $sourceStubber),
+						])),
+					),
 				);
 				$visitors[] = new DowngradeNamedArgumentsVisitor($reflector);
 			}
