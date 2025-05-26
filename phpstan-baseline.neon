@@ -1,2 +1,49 @@
 parameters:
 	ignoreErrors:
+		-
+			message: '#^Call to method __construct\(\) of internal class PhpParser\\Internal\\TokenStream from outside its root namespace PhpParser\.$#'
+			identifier: method.internalClass
+			count: 1
+			path: src/Console/DowngradeCommand.php
+
+		-
+			message: '#^Instantiation of internal class PhpParser\\Internal\\TokenStream\.$#'
+			identifier: new.internalClass
+			count: 1
+			path: src/Console/DowngradeCommand.php
+
+		-
+			message: '#^Access to property \$text of internal class Symfony\\Polyfill\\Php80\\PhpToken from outside its root namespace Symfony\.$#'
+			identifier: property.internalClass
+			count: 2
+			path: src/Php/FollowedByCommaAnalyser.php
+
+		-
+			message: '#^Call to method getTokenCode\(\) of internal class PhpParser\\Internal\\TokenStream from outside its root namespace PhpParser\.$#'
+			identifier: method.internalClass
+			count: 1
+			path: src/Php/PhpPrinterIndentationDetectorVisitor.php
+
+		-
+			message: '#^Parameter \$origTokens of method SimpleDowngrader\\Php\\PhpPrinterIndentationDetectorVisitor\:\:__construct\(\) has typehint with internal class PhpParser\\Internal\\TokenStream\.$#'
+			identifier: parameter.internalClass
+			count: 1
+			path: src/Php/PhpPrinterIndentationDetectorVisitor.php
+
+		-
+			message: '#^Property \$origTokens references internal class PhpParser\\Internal\\TokenStream in its type\.$#'
+			identifier: property.internalClass
+			count: 1
+			path: src/Php/PhpPrinterIndentationDetectorVisitor.php
+
+		-
+			message: '#^Call to method __construct\(\) of internal class PhpParser\\Internal\\TokenStream from outside its root namespace PhpParser\.$#'
+			identifier: method.internalClass
+			count: 1
+			path: tests/Visitor/AbstractVisitorTestCase.php
+
+		-
+			message: '#^Instantiation of internal class PhpParser\\Internal\\TokenStream\.$#'
+			identifier: new.internalClass
+			count: 1
+			path: tests/Visitor/AbstractVisitorTestCase.php
