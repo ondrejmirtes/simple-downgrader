@@ -88,6 +88,9 @@ class DowngradeNamedArgumentsVisitor extends NodeVisitorAbstract
 			return $node;
 		}
 		if ($node instanceof Node\Expr\FuncCall && $node->name instanceof Node\Name && !$node->isFirstClassCallable()) {
+			if (!$this->hasNamedArgs($node->getArgs())) {
+				return null;
+			}
 			try {
 				$function = $this->reflector->reflectFunction($node->name->toString());
 			} catch (IdentifierNotFound $e) {
@@ -104,6 +107,9 @@ class DowngradeNamedArgumentsVisitor extends NodeVisitorAbstract
 			return $node;
 		}
 		if ($node instanceof Node\Expr\New_ && $node->class instanceof Node\Name && !$node->isFirstClassCallable()) {
+			if (!$this->hasNamedArgs($node->getArgs())) {
+				return null;
+			}
 			try {
 				$class = $this->reflector->reflectClass($this->resolveName($node->class));
 			} catch (IdentifierNotFound $e) {
@@ -130,6 +136,9 @@ class DowngradeNamedArgumentsVisitor extends NodeVisitorAbstract
 			&& $node->name instanceof Node\Identifier
 			&& !$node->isFirstClassCallable()
 		) {
+			if (!$this->hasNamedArgs($node->getArgs())) {
+				return null;
+			}
 			try {
 				$class = $this->reflector->reflectClass($this->resolveName($node->class));
 			} catch (IdentifierNotFound $e) {
@@ -206,6 +215,9 @@ class DowngradeNamedArgumentsVisitor extends NodeVisitorAbstract
 	{
 		foreach ($attrGroups as $attrGroup) {
 			foreach ($attrGroup->attrs as $attr) {
+				if (!$this->hasNamedArgs($attr->args)) {
+					continue;
+				}
 				try {
 					$class = $this->reflector->reflectClass($attr->name->toString());
 				} catch (IdentifierNotFound $e) {
@@ -226,6 +238,22 @@ class DowngradeNamedArgumentsVisitor extends NodeVisitorAbstract
 			}
 		}
 		return $attrGroups;
+	}
+
+	/**
+	 * @param Arg[] $args
+	 */
+	private function hasNamedArgs(array $args): bool
+	{
+		foreach ($args as $arg) {
+			if ($arg->name === null) {
+				continue;
+			}
+
+			return true;
+		}
+
+		return false;
 	}
 
 	/**
