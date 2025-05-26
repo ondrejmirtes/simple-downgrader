@@ -8,6 +8,7 @@ use PHPStan\BetterReflection\Reflector\DefaultReflector;
 use PHPStan\BetterReflection\SourceLocator\Type\AggregateSourceLocator;
 use PHPStan\BetterReflection\SourceLocator\Type\DirectoriesSourceLocator;
 use PHPStan\BetterReflection\SourceLocator\Type\PhpInternalSourceLocator;
+use const PHP_VERSION_ID;
 
 class DowngradeNamedArgumentsVisitorTest extends AbstractVisitorTestCase
 {
@@ -123,23 +124,24 @@ PHP
 ,
 		];
 
-		yield [
-			<<<'PHP'
+		if (PHP_VERSION_ID >= 80400) {
+			yield [
+				<<<'PHP'
 <?php
 
 Dom\XMLDocument::createEmpty(encoding: 'ISO-8859-2');
 PHP
 ,
-			<<<'PHP'
+				<<<'PHP'
 <?php
 
 Dom\XMLDocument::createEmpty("1.0", 'ISO-8859-2');
 PHP
 ,
-		];
+			];
 
-		yield [
-			<<<'PHP'
+			yield [
+				<<<'PHP'
 <?php
 
 namespace Dom;
@@ -153,7 +155,7 @@ class XMLDocument
 }
 PHP
 ,
-			<<<'PHP'
+				<<<'PHP'
 <?php
 
 namespace Dom;
@@ -166,7 +168,8 @@ class XMLDocument
 	}
 }
 PHP,
-		];
+			];
+		}
 
 		yield [
 			<<<'PHP'
