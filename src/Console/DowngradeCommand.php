@@ -10,6 +10,12 @@ use PhpParser\NodeTraverser;
 use PhpParser\NodeVisitor;
 use PhpParser\NodeVisitor\CloningVisitor;
 use PhpParser\Parser;
+use PHPStan\BetterReflection\BetterReflection;
+use PHPStan\BetterReflection\Reflector\DefaultReflector;
+use PHPStan\BetterReflection\SourceLocator\Type\AggregateSourceLocator;
+use PHPStan\BetterReflection\SourceLocator\Type\Composer\Factory\MakeLocatorForComposerJsonAndInstalledJson;
+use PHPStan\BetterReflection\SourceLocator\Type\MemoizingSourceLocator;
+use PHPStan\BetterReflection\SourceLocator\Type\PhpInternalSourceLocator;
 use PHPStan\PhpDocParser\Lexer\Lexer;
 use PHPStan\PhpDocParser\Parser\PhpDocParser;
 use PHPStan\PhpDocParser\Printer\Printer;
@@ -18,6 +24,7 @@ use SimpleDowngrader\Php\PhpPrinter;
 use SimpleDowngrader\Php\PhpPrinterIndentationDetectorVisitor;
 use SimpleDowngrader\PhpDoc\PhpDocEditor;
 use SimpleDowngrader\Visitor\DowngradeMixedTypeVisitor;
+use SimpleDowngrader\Visitor\DowngradeNamedArgumentsVisitor;
 use SimpleDowngrader\Visitor\DowngradeNonCapturingCatchesVisitor;
 use SimpleDowngrader\Visitor\DowngradePropertyPromotionVisitor;
 use SimpleDowngrader\Visitor\DowngradePureIntersectionTypeVisitor;
@@ -38,6 +45,7 @@ use Symfony\Component\Finder\Finder;
 use Symfony\Component\Finder\SplFileInfo;
 use function array_map;
 use function count;
+use function dirname;
 use function explode;
 use function file_get_contents;
 use function file_put_contents;
@@ -73,6 +81,7 @@ class DowngradeCommand extends Command
 		$this->phpDocLexer = $phpDocLexer;
 		$this->phpDocParser = $phpDocParser;
 		$this->cloningTraverser = new NodeTraverser();
+		$this->cloningTraverser->addVisitor(new NodeVisitor\NameResolver());
 		$this->cloningTraverser->addVisitor(new CloningVisitor());
 	}
 
@@ -98,7 +107,6 @@ class DowngradeCommand extends Command
 		}
 
 		$phpVersionId = $this->parsePhpVersion($php);
-		$visitors = $this->createDowngradeVisitors($phpVersionId);
 
 		$cwd = getcwd();
 		if ($cwd === false) {
@@ -117,9 +125,12 @@ class DowngradeCommand extends Command
 		/** @var list<string> $excludePaths */
 		$excludePaths = $configArray['excludePaths'];
 
+		/** @var string|null $composerJson */
+		$composerJson = $configArray['composerJson'] ?? null;
+
 		$files = $this->findFiles($paths, $excludePaths);
 		foreach ($files as $file) {
-			$this->processFile($file, $visitors);
+			$this->processFile($file, $this->createDowngradeVisitors($composerJson, $phpVersionId));
 		}
 
 		return 0;
@@ -170,12 +181,13 @@ class DowngradeCommand extends Command
 	/**
 	 * @return list<NodeVisitor>
 	 */
-	private function createDowngradeVisitors(int $phpVersionId): array
+	private function createDowngradeVisitors(?string $composerJsonPath, int $phpVersionId): array
 	{
 		$phpDocPrinter = new Printer();
 		$phpDocEditor = new PhpDocEditor($phpDocPrinter, $this->phpDocLexer, $this->phpDocParser);
 		$typeDowngraderHelper = new TypeDowngraderHelper($phpDocEditor);
 		$followedByCommaAnalyser = new FollowedByCommaAnalyser();
+
 		$visitors = [];
 		if ($phpVersionId < 80100) {
 			$visitors[] = new DowngradeReadonlyPropertyVisitor($phpDocEditor);
@@ -195,6 +207,19 @@ class DowngradeCommand extends Command
 			);
 			$visitors[] = new DowngradeMixedTypeVisitor($typeDowngraderHelper);
 			$visitors[] = new DowngradeStaticReturnTypeVisitor($typeDowngraderHelper);
+
+			if ($composerJsonPath !== null) {
+				$betterReflection = new BetterReflection();
+				$astLocator = $betterReflection->astLocator();
+				$sourceStubber = $betterReflection->sourceStubber();
+				$reflector = new DefaultReflector(
+					new MemoizingSourceLocator(new AggregateSourceLocator([
+						(new MakeLocatorForComposerJsonAndInstalledJson())(dirname($composerJsonPath), $astLocator),
+						new PhpInternalSourceLocator($astLocator, $sourceStubber),
+					])),
+				);
+				$visitors[] = new DowngradeNamedArgumentsVisitor($reflector);
+			}
 		}
 
 		return $visitors;

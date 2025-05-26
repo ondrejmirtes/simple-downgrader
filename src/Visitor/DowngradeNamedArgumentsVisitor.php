@@ -1,0 +1,363 @@
+<?php declare(strict_types = 1);
+
+namespace SimpleDowngrader\Visitor;
+
+use Exception;
+use PhpParser\Node;
+use PhpParser\Node\Arg;
+use PhpParser\NodeVisitorAbstract;
+use PHPStan\BetterReflection\Reflection\ReflectionParameter;
+use PHPStan\BetterReflection\Reflector\Exception\IdentifierNotFound;
+use PHPStan\BetterReflection\Reflector\Reflector;
+use function array_key_exists;
+use function array_keys;
+use function array_pop;
+use function array_values;
+use function count;
+use function in_array;
+use function ksort;
+use function max;
+use function sprintf;
+
+class DowngradeNamedArgumentsVisitor extends NodeVisitorAbstract
+{
+
+	public const ORIGINAL_ARG_ATTRIBUTE = 'originalArg';
+
+	private Reflector $reflector;
+
+	/** @var list<Node\Name|null> */
+	private array $classLikeStack = [];
+
+	public function __construct(Reflector $reflector)
+	{
+		$this->reflector = $reflector;
+	}
+
+	public function enterNode(Node $node)
+	{
+		if ($node instanceof Node\Expr\ArrowFunction) {
+			$node->attrGroups = $this->downgradeAttrGroups($node->attrGroups);
+
+			return $node;
+		}
+		if ($node instanceof Node\Stmt\ClassConst) {
+			$node->attrGroups = $this->downgradeAttrGroups($node->attrGroups);
+
+			return $node;
+		}
+		if ($node instanceof Node\Expr\Closure) {
+			$node->attrGroups = $this->downgradeAttrGroups($node->attrGroups);
+
+			return $node;
+		}
+		if ($node instanceof Node\Stmt\ClassLike) {
+			$this->classLikeStack[] = $node->namespacedName;
+			$node->attrGroups = $this->downgradeAttrGroups($node->attrGroups);
+
+			return $node;
+		}
+		if ($node instanceof Node\Stmt\ClassMethod) {
+			$node->attrGroups = $this->downgradeAttrGroups($node->attrGroups);
+
+			return $node;
+		}
+		if ($node instanceof Node\Stmt\EnumCase) {
+			$node->attrGroups = $this->downgradeAttrGroups($node->attrGroups);
+
+			return $node;
+		}
+		if ($node instanceof Node\Stmt\Function_) {
+			$node->attrGroups = $this->downgradeAttrGroups($node->attrGroups);
+
+			return $node;
+		}
+		if ($node instanceof Node\Param) {
+			$node->attrGroups = $this->downgradeAttrGroups($node->attrGroups);
+
+			return $node;
+		}
+		if ($node instanceof Node\Stmt\Property) {
+			$node->attrGroups = $this->downgradeAttrGroups($node->attrGroups);
+
+			return $node;
+		}
+		if ($node instanceof Node\PropertyHook) {
+			$node->attrGroups = $this->downgradeAttrGroups($node->attrGroups);
+
+			return $node;
+		}
+		if ($node instanceof Node\Expr\FuncCall && $node->name instanceof Node\Name && !$node->isFirstClassCallable()) {
+			try {
+				$function = $this->reflector->reflectFunction($node->name->toString());
+			} catch (IdentifierNotFound $e) {
+				return null;
+			}
+
+			$newArgs = $this->downgradeArgs(array_values($node->getArgs()), $function->getParameters());
+			if ($newArgs === null) {
+				return null;
+			}
+
+			$node->args = $newArgs;
+
+			return $node;
+		}
+		if ($node instanceof Node\Expr\New_ && $node->class instanceof Node\Name && !$node->isFirstClassCallable()) {
+			try {
+				$class = $this->reflector->reflectClass($this->resolveName($node->class));
+			} catch (IdentifierNotFound $e) {
+				return null;
+			}
+
+			$constructor = $class->getConstructor();
+			if ($constructor === null) {
+				return null;
+			}
+
+			$newArgs = $this->downgradeArgs(array_values($node->getArgs()), $constructor->getParameters());
+			if ($newArgs === null) {
+				return null;
+			}
+
+			$node->args = $newArgs;
+
+			return $node;
+		}
+		if (
+			$node instanceof Node\Expr\StaticCall
+			&& $node->class instanceof Node\Name
+			&& $node->name instanceof Node\Identifier
+			&& !$node->isFirstClassCallable()
+		) {
+			try {
+				$class = $this->reflector->reflectClass($this->resolveName($node->class));
+			} catch (IdentifierNotFound $e) {
+				return null;
+			}
+
+			$method = $class->getMethod($node->name->toString());
+			if ($method === null) {
+				return null;
+			}
+
+			$newArgs = $this->downgradeArgs(array_values($node->getArgs()), $method->getParameters());
+			if ($newArgs === null) {
+				return null;
+			}
+
+			$node->args = $newArgs;
+
+			return $node;
+		}
+
+		return null;
+	}
+
+	public function leaveNode(Node $node)
+	{
+		if (!($node instanceof Node\Stmt\ClassLike)) {
+			return null;
+		}
+
+		array_pop($this->classLikeStack);
+
+		return null;
+	}
+
+	private function resolveName(Node\Name $name): string
+	{
+		$stringName = $name->toString();
+		if (count($this->classLikeStack) === 0) {
+			return $stringName;
+		}
+
+		$inClassName = $this->classLikeStack[count($this->classLikeStack) - 1];
+		if ($inClassName === null) {
+			return $stringName;
+		}
+
+		if (in_array($name->toLowerString(), ['self', 'static'], true)) {
+			return $inClassName->toString();
+		}
+
+		if ($name->toLowerString() === 'parent') {
+			try {
+				$class = $this->reflector->reflectClass($inClassName->toString());
+				$parent = $class->getParentClass();
+				if ($parent === null) {
+					return $stringName;
+				}
+			} catch (IdentifierNotFound $e) {
+				return $stringName;
+			}
+
+			return $parent->getName();
+		}
+
+		return $stringName;
+	}
+
+	/**
+	 * @param Node\AttributeGroup[] $attrGroups
+	 * @return Node\AttributeGroup[]
+	 */
+	private function downgradeAttrGroups(array $attrGroups): array
+	{
+		foreach ($attrGroups as $attrGroup) {
+			foreach ($attrGroup->attrs as $attr) {
+				try {
+					$class = $this->reflector->reflectClass($attr->name->toString());
+				} catch (IdentifierNotFound $e) {
+					continue;
+				}
+
+				$constructor = $class->getConstructor();
+				if ($constructor === null) {
+					continue;
+				}
+
+				$newArgs = $this->downgradeArgs($attr->args, $constructor->getParameters());
+				if ($newArgs === null) {
+					continue;
+				}
+
+				$attr->args = $newArgs;
+			}
+		}
+		return $attrGroups;
+	}
+
+	/**
+	 * @param list<Arg> $args
+	 * @param list<ReflectionParameter> $parameters
+	 * @return list<Arg>|null
+	 */
+	private function downgradeArgs(array $args, array $parameters): ?array
+	{
+		if (count($args) === 0) {
+			return [];
+		}
+
+		$hasNamedArgs = false;
+		foreach ($args as $arg) {
+			if ($arg->name !== null) {
+				$hasNamedArgs = true;
+				break;
+			}
+		}
+		if (!$hasNamedArgs) {
+			return $args;
+		}
+
+		$hasVariadic = false;
+		$argumentPositions = [];
+		foreach ($parameters as $i => $parameter) {
+			if ($hasVariadic) {
+				// variadic parameter must be last
+				return null;
+			}
+
+			$hasVariadic = $parameter->isVariadic();
+			$argumentPositions[$parameter->getName()] = $i;
+		}
+
+		$reorderedArgs = [];
+		$additionalNamedArgs = [];
+		$appendArgs = [];
+		foreach ($args as $i => $arg) {
+			if ($arg->name === null) {
+				// add regular args as is
+				$reorderedArgs[$i] = $arg;
+			} elseif (array_key_exists($arg->name->toString(), $argumentPositions)) {
+				$argName = $arg->name->toString();
+				// order named args into the position the signature expects them
+				$attributes = $arg->getAttributes();
+				$attributes[self::ORIGINAL_ARG_ATTRIBUTE] = $arg;
+				$reorderedArgs[$argumentPositions[$argName]] = new Arg(
+					$arg->value,
+					$arg->byRef,
+					$arg->unpack,
+					$attributes,
+					null,
+				);
+			} else {
+				if (!$hasVariadic) {
+					$attributes = $arg->getAttributes();
+					$attributes[self::ORIGINAL_ARG_ATTRIBUTE] = $arg;
+					$appendArgs[] = new Arg(
+						$arg->value,
+						$arg->byRef,
+						$arg->unpack,
+						$attributes,
+						null,
+					);
+					continue;
+				}
+
+				$attributes = $arg->getAttributes();
+				$attributes[self::ORIGINAL_ARG_ATTRIBUTE] = $arg;
+				$additionalNamedArgs[] = new Arg(
+					$arg->value,
+					$arg->byRef,
+					$arg->unpack,
+					$attributes,
+					null,
+				);
+			}
+		}
+
+		// replace variadic parameter with additional named args, except if it is already set
+		$additionalNamedArgsOffset = count($argumentPositions) - 1;
+		if (array_key_exists($additionalNamedArgsOffset, $reorderedArgs)) {
+			$additionalNamedArgsOffset++;
+		}
+
+		foreach ($additionalNamedArgs as $i => $additionalNamedArg) {
+			$reorderedArgs[$additionalNamedArgsOffset + $i] = $additionalNamedArg;
+		}
+
+		if (count($reorderedArgs) === 0) {
+			foreach ($appendArgs as $arg) {
+				$reorderedArgs[] = $arg;
+			}
+			return $reorderedArgs;
+		}
+
+		// fill up all holes with default values until the last given argument
+		for ($j = 0; $j < max(array_keys($reorderedArgs)); $j++) {
+			if (array_key_exists($j, $reorderedArgs)) {
+				continue;
+			}
+			if (!array_key_exists($j, $parameters)) {
+				throw new Exception('Parameter signatures cannot have holes');
+			}
+
+			$parameter = $parameters[$j];
+
+			// we can only fill up optional parameters with default values
+			if (!$parameter->isOptional()) {
+				return null;
+			}
+
+			$defaultValue = $parameter->getDefaultValueExpression();
+			if ($defaultValue === null) {
+				if (!$parameter->isVariadic()) {
+					throw new Exception(sprintf('An optional parameter $%s must have a default value', $parameter->getName()));
+				}
+				$defaultValue = new Node\Expr\Array_();
+			}
+
+			$reorderedArgs[$j] = new Arg($defaultValue);
+		}
+
+		ksort($reorderedArgs);
+
+		foreach ($appendArgs as $arg) {
+			$reorderedArgs[] = $arg;
+		}
+
+		return array_values($reorderedArgs);
+	}
+
+}

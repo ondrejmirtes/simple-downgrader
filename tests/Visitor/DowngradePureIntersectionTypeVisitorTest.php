@@ -35,13 +35,13 @@ PHP
 class SomeClass
 {
     /**
-     * @var Foo&Bar
+     * @var \Foo&\Bar
      */
     public $foo;
 
     /**
      * @param \Foo&\Bar $a
-     * @return Foo&\Bar
+     * @return \Foo&\Bar
      */
     public function doFoo($a)
     {

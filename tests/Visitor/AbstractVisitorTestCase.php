@@ -47,6 +47,7 @@ abstract class AbstractVisitorTestCase extends TestCase
 		$indentTraverser->traverse($oldStmts);
 
 		$cloningTraverser = new NodeTraverser();
+		$cloningTraverser->addVisitor(new NodeVisitor\NameResolver());
 		$cloningTraverser->addVisitor(new CloningVisitor());
 
 		/** @var Stmt[] $newStmts */
