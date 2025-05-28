@@ -207,7 +207,7 @@ array_slice(
 	preserve_keys: true,
 );
 PHP
-			,
+,
 			<<<'PHP'
 <?php
 
