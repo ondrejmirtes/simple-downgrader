@@ -9,6 +9,7 @@ use PhpParser\NodeVisitorAbstract;
 use PHPStan\BetterReflection\Reflection\ReflectionParameter;
 use PHPStan\BetterReflection\Reflector\Exception\IdentifierNotFound;
 use PHPStan\BetterReflection\Reflector\Reflector;
+use ReflectionClass;
 use function array_key_exists;
 use function array_keys;
 use function array_pop;
@@ -95,6 +96,19 @@ class DowngradeNamedArgumentsVisitor extends NodeVisitorAbstract
 				$function = $this->reflector->reflectFunction($node->name->toString());
 			} catch (IdentifierNotFound $e) {
 				return null;
+			}
+
+			$parameters = $function->getParameters();
+			if (in_array($function->getName(), ['array_slice', 'array_splice'], true)) {
+				$ref = new ReflectionClass(ReflectionParameter::class);
+				$refPropOptional = $ref->getProperty('isOptional');
+				$refPropOptional->setAccessible(true);
+				$length = $parameters[2];
+				$refPropOptional->setValue($length, true);
+
+				$refPropDefault = $ref->getProperty('default');
+				$refPropDefault->setAccessible(true);
+				$refPropDefault->setValue($length, new Node\Expr\ConstFetch(new Node\Name('null')));
 			}
 
 			$newArgs = $this->downgradeArgs(array_values($node->getArgs()), $function->getParameters());

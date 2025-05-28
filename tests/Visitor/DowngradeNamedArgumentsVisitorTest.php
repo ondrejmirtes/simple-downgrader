@@ -196,6 +196,29 @@ class OutOfRangeException extends Exception
 }
 PHP,
 		];
+
+		yield [
+			<<<'PHP'
+<?php
+
+array_slice(
+	$this->resolvedPhpDocBlockCache,
+	1,
+	preserve_keys: true,
+);
+PHP
+			,
+			<<<'PHP'
+<?php
+
+array_slice(
+	$this->resolvedPhpDocBlockCache,
+	1,
+    null,
+	true,
+);
+PHP,
+		];
 	}
 
 }
