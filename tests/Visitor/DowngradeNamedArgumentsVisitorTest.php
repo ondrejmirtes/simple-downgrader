@@ -219,6 +219,20 @@ array_slice(
 );
 PHP,
 		];
+
+		yield [
+			<<<'PHP'
+<?php
+
+@mkdir(dirname($symbolsFile), recursive: true);
+PHP
+,
+			<<<'PHP'
+<?php
+
+@mkdir(dirname($symbolsFile), 0777, true);
+PHP,
+		];
 	}
 
 }

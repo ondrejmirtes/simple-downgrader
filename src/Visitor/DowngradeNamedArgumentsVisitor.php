@@ -98,17 +98,36 @@ class DowngradeNamedArgumentsVisitor extends NodeVisitorAbstract
 				return null;
 			}
 
+			$refParameter = new ReflectionClass(ReflectionParameter::class);
+			$refPropOptional = $refParameter->getProperty('isOptional');
+			$refPropOptional->setAccessible(true);
+
 			$parameters = $function->getParameters();
 			if (in_array($function->getName(), ['array_slice', 'array_splice'], true)) {
-				$ref = new ReflectionClass(ReflectionParameter::class);
-				$refPropOptional = $ref->getProperty('isOptional');
-				$refPropOptional->setAccessible(true);
 				$length = $parameters[2];
 				$refPropOptional->setValue($length, true);
 
-				$refPropDefault = $ref->getProperty('default');
+				$refPropDefault = $refParameter->getProperty('default');
 				$refPropDefault->setAccessible(true);
 				$refPropDefault->setValue($length, new Node\Expr\ConstFetch(new Node\Name('null')));
+			} else {
+				$optionalOccurred = false;
+				foreach ($parameters as $parameter) {
+					if ($parameter->isOptional()) {
+						continue;
+					}
+					if ($parameter->getDefaultValueExpression() !== null) {
+						$refPropOptional->setValue($parameter, true);
+						$optionalOccurred = true;
+						continue;
+					}
+
+					if (!$optionalOccurred) {
+						continue;
+					}
+
+					$refPropOptional->setValue($parameter, true);
+				}
 			}
 
 			$newArgs = $this->downgradeArgs(array_values($node->getArgs()), $function->getParameters());
