@@ -25,6 +25,8 @@ class DowngradeNamedArgumentsVisitorTest extends AbstractVisitorTestCase
 				<<<'PHP'
 <?php
 
+namespace MyNamespace;
+
 class StreamOutput
 {
 
@@ -256,13 +258,17 @@ PHP,
 			<<<'PHP'
 <?php
 
+use MyNamespace\StreamOutput;
+
 new StreamOutput(decorated: true);
 PHP
 ,
 			<<<'PHP'
 <?php
 
-new StreamOutput(StreamOutput::VERBOSITY_NORMAL, true);
+use MyNamespace\StreamOutput;
+
+new StreamOutput(\MyNamespace\StreamOutput::VERBOSITY_NORMAL, true);
 PHP,
 		];
 	}

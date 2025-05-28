@@ -409,7 +409,7 @@ class DowngradeNamedArgumentsVisitor extends NodeVisitorAbstract
 				}
 				$defaultValue = new Node\Expr\Array_();
 			} elseif ($defaultValue instanceof Node\Expr\ClassConstFetch && $defaultValue->class instanceof Node\Name) {
-				$defaultValue->class = new Node\Name($this->resolveName($defaultValue->class, $accessedClassName === null ? null : new Node\Name($accessedClassName)));
+				$defaultValue->class = new Node\Name\FullyQualified($this->resolveName($defaultValue->class, $accessedClassName === null ? null : new Node\Name($accessedClassName)));
 			}
 
 			$reorderedArgs[$j] = new Arg($defaultValue);
