@@ -130,7 +130,7 @@ class DowngradeNamedArgumentsVisitor extends NodeVisitorAbstract
 				}
 			}
 
-			$newArgs = $this->downgradeArgs(array_values($node->getArgs()), $function->getParameters());
+			$newArgs = $this->downgradeArgs(array_values($node->getArgs()), $function->getParameters(), null);
 			if ($newArgs === null) {
 				return null;
 			}
@@ -143,8 +143,11 @@ class DowngradeNamedArgumentsVisitor extends NodeVisitorAbstract
 			if (!$this->hasNamedArgs($node->getArgs())) {
 				return null;
 			}
+
+			$accessedClassName = $this->resolveName($node->class, $this->classLikeStack[count($this->classLikeStack) - 1] ?? null);
+
 			try {
-				$class = $this->reflector->reflectClass($this->resolveName($node->class));
+				$class = $this->reflector->reflectClass($accessedClassName);
 			} catch (IdentifierNotFound $e) {
 				return null;
 			}
@@ -154,7 +157,7 @@ class DowngradeNamedArgumentsVisitor extends NodeVisitorAbstract
 				return null;
 			}
 
-			$newArgs = $this->downgradeArgs(array_values($node->getArgs()), $constructor->getParameters());
+			$newArgs = $this->downgradeArgs(array_values($node->getArgs()), $constructor->getParameters(), $accessedClassName);
 			if ($newArgs === null) {
 				return null;
 			}
@@ -172,8 +175,11 @@ class DowngradeNamedArgumentsVisitor extends NodeVisitorAbstract
 			if (!$this->hasNamedArgs($node->getArgs())) {
 				return null;
 			}
+
+			$accessedClassName = $this->resolveName($node->class, $this->classLikeStack[count($this->classLikeStack) - 1] ?? null);
+
 			try {
-				$class = $this->reflector->reflectClass($this->resolveName($node->class));
+				$class = $this->reflector->reflectClass($accessedClassName);
 			} catch (IdentifierNotFound $e) {
 				return null;
 			}
@@ -183,7 +189,7 @@ class DowngradeNamedArgumentsVisitor extends NodeVisitorAbstract
 				return null;
 			}
 
-			$newArgs = $this->downgradeArgs(array_values($node->getArgs()), $method->getParameters());
+			$newArgs = $this->downgradeArgs(array_values($node->getArgs()), $method->getParameters(), $accessedClassName);
 			if ($newArgs === null) {
 				return null;
 			}
@@ -207,14 +213,9 @@ class DowngradeNamedArgumentsVisitor extends NodeVisitorAbstract
 		return null;
 	}
 
-	private function resolveName(Node\Name $name): string
+	private function resolveName(Node\Name $name, ?Node\Name $inClassName): string
 	{
 		$stringName = $name->toString();
-		if (count($this->classLikeStack) === 0) {
-			return $stringName;
-		}
-
-		$inClassName = $this->classLikeStack[count($this->classLikeStack) - 1];
 		if ($inClassName === null) {
 			return $stringName;
 		}
@@ -262,7 +263,7 @@ class DowngradeNamedArgumentsVisitor extends NodeVisitorAbstract
 					continue;
 				}
 
-				$newArgs = $this->downgradeArgs($attr->args, $constructor->getParameters());
+				$newArgs = $this->downgradeArgs($attr->args, $constructor->getParameters(), null);
 				if ($newArgs === null) {
 					continue;
 				}
@@ -294,7 +295,7 @@ class DowngradeNamedArgumentsVisitor extends NodeVisitorAbstract
 	 * @param list<ReflectionParameter> $parameters
 	 * @return list<Arg>|null
 	 */
-	private function downgradeArgs(array $args, array $parameters): ?array
+	private function downgradeArgs(array $args, array $parameters, ?string $accessedClassName): ?array
 	{
 		if (count($args) === 0) {
 			return [];
@@ -407,6 +408,8 @@ class DowngradeNamedArgumentsVisitor extends NodeVisitorAbstract
 					throw new Exception(sprintf('An optional parameter $%s must have a default value', $parameter->getName()));
 				}
 				$defaultValue = new Node\Expr\Array_();
+			} elseif ($defaultValue instanceof Node\Expr\ClassConstFetch && $defaultValue->class instanceof Node\Name) {
+				$defaultValue->class = new Node\Name($this->resolveName($defaultValue->class, $accessedClassName === null ? null : new Node\Name($accessedClassName)));
 			}
 
 			$reorderedArgs[$j] = new Arg($defaultValue);

@@ -8,6 +8,7 @@ use PHPStan\BetterReflection\Reflector\DefaultReflector;
 use PHPStan\BetterReflection\SourceLocator\Type\AggregateSourceLocator;
 use PHPStan\BetterReflection\SourceLocator\Type\DirectoriesSourceLocator;
 use PHPStan\BetterReflection\SourceLocator\Type\PhpInternalSourceLocator;
+use PHPStan\BetterReflection\SourceLocator\Type\StringSourceLocator;
 use const PHP_VERSION_ID;
 
 class DowngradeNamedArgumentsVisitorTest extends AbstractVisitorTestCase
@@ -20,6 +21,23 @@ class DowngradeNamedArgumentsVisitorTest extends AbstractVisitorTestCase
 		$sourceStubber = $betterReflection->sourceStubber();
 
 		return new DowngradeNamedArgumentsVisitor(new DefaultReflector(new AggregateSourceLocator([
+			new StringSourceLocator(
+				<<<'PHP'
+<?php
+
+class StreamOutput
+{
+
+	public const VERBOSITY_NORMAL = 1;
+
+	public function __construct(int $verbosity = self::VERBOSITY_NORMAL, bool $decorated = false)
+	{
+	}
+
+}
+PHP,
+				$astLocator,
+			),
 			new DirectoriesSourceLocator([__DIR__ . '/../../vendor/jetbrains/phpstorm-stubs/meta/attributes'], $astLocator),
 			new PhpInternalSourceLocator($astLocator, $sourceStubber),
 		])));
@@ -231,6 +249,20 @@ PHP
 <?php
 
 @mkdir(dirname($symbolsFile), 0777, true);
+PHP,
+		];
+
+		yield [
+			<<<'PHP'
+<?php
+
+new StreamOutput(decorated: true);
+PHP
+,
+			<<<'PHP'
+<?php
+
+new StreamOutput(StreamOutput::VERBOSITY_NORMAL, true);
 PHP,
 		];
 	}
