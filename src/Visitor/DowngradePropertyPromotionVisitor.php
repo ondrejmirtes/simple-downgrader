@@ -61,8 +61,10 @@ class DowngradePropertyPromotionVisitor extends NodeVisitorAbstract
 				}
 
 				$promoted = [];
+				$notPromoted = [];
 				foreach ($classStmt->params as $param) {
 					if ($param->flags === 0) {
+						$notPromoted[] = $param;
 						continue;
 					}
 
@@ -80,7 +82,7 @@ class DowngradePropertyPromotionVisitor extends NodeVisitorAbstract
 
 				$classStmts = $node->stmts;
 				$methodStmts = $classStmt->stmts;
-				$newParameters = [];
+				$newParameters = $notPromoted;
 				foreach (array_reverse($promoted) as $p) {
 					if (!$p->var instanceof Node\Expr\Variable || !is_string($p->var->name)) {
 						continue;
