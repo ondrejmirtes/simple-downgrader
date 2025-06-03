@@ -2,8 +2,11 @@
 
 namespace SimpleDowngrader\Visitor;
 
+use Attribute;
 use PhpParser\Node;
 use PhpParser\NodeVisitorAbstract;
+use PHPStan\BetterReflection\Reflector\Exception\IdentifierNotFound;
+use PHPStan\BetterReflection\Reflector\Reflector;
 use PHPStan\PhpDocParser\Ast\PhpDoc\PhpDocNode;
 use PHPStan\PhpDocParser\Ast\PhpDoc\PhpDocTagNode;
 use PHPStan\PhpDocParser\Ast\PhpDoc\VarTagValueNode;
@@ -15,6 +18,7 @@ use function array_key_exists;
 use function array_reverse;
 use function array_unshift;
 use function array_values;
+use function count;
 use function is_string;
 use function substr;
 
@@ -27,15 +31,19 @@ class DowngradePropertyPromotionVisitor extends NodeVisitorAbstract
 
 	private PhpDocEditor $phpDocEditor;
 
+	private Reflector $reflector;
+
 	public function __construct(
 		Lexer $lexer,
 		PhpDocParser $phpDocParser,
-		PhpDocEditor $phpDocEditor
+		PhpDocEditor $phpDocEditor,
+		Reflector $reflector
 	)
 	{
 		$this->lexer = $lexer;
 		$this->phpDocParser = $phpDocParser;
 		$this->phpDocEditor = $phpDocEditor;
+		$this->reflector = $reflector;
 	}
 
 	public function enterNode(Node $node)
@@ -86,7 +94,7 @@ class DowngradePropertyPromotionVisitor extends NodeVisitorAbstract
 							'comments' => $p->getComments(),
 						],
 						$p->type,
-						$p->attrGroups,
+						$this->filterAttrGroups($p->attrGroups, Attribute::TARGET_PROPERTY),
 					);
 					if (array_key_exists($p->var->name, $phpDocParams)) {
 						$this->phpDocEditor->edit($propertyNode, static function (\PHPStan\PhpDocParser\Ast\Node $phpDocNode) use ($phpDocParams, $p) {
@@ -119,7 +127,7 @@ class DowngradePropertyPromotionVisitor extends NodeVisitorAbstract
 						$p->variadic,
 						[],
 						0,
-						array_values($p->attrGroups),
+						$this->filterAttrGroups($p->attrGroups, Attribute::TARGET_PARAMETER),
 					);
 					$p->setAttribute('comments', []);
 				}
@@ -142,6 +150,46 @@ class DowngradePropertyPromotionVisitor extends NodeVisitorAbstract
 		$tokens = new TokenIterator($this->lexer->tokenize($phpDoc));
 
 		return $this->phpDocParser->parse($tokens);
+	}
+
+	/**
+	 * @param Node\AttributeGroup[] $attrGroups
+	 * @return list<Node\AttributeGroup>
+	 */
+	private function filterAttrGroups(array $attrGroups, int $target): array
+	{
+		foreach ($attrGroups as $i => $attrGroup) {
+			$attrGroup = clone $attrGroup;
+			foreach ($attrGroup->attrs as $j => $attr) {
+				try {
+					$attributeReflection = $this->reflector->reflectClass($attr->name->toString());
+				} catch (IdentifierNotFound $e) {
+					continue;
+				}
+
+				$actualAttributes = $attributeReflection->getAttributesByName(Attribute::class);
+				if (count($actualAttributes) !== 1) {
+					continue;
+				}
+
+				$arguments = $actualAttributes[0]->getArguments();
+				/** @var int $flags */
+				$flags = $arguments[0] ?? $arguments['flags'] ?? 0;
+				if (($flags & $target) === $target) {
+					continue;
+				}
+
+				unset($attrGroup->attrs[$j]);
+			}
+
+			if (count($attrGroup->attrs) !== 0) {
+				continue;
+			}
+
+			unset($attrGroups[$i]);
+		}
+
+		return array_values($attrGroups);
 	}
 
 }

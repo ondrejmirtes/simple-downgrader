@@ -202,13 +202,6 @@ class DowngradeCommand extends Command
 			$visitors[] = new DowngradeTrailingCommasInClosureUsesVisitor($followedByCommaAnalyser);
 			$visitors[] = new DowngradeNonCapturingCatchesVisitor();
 			$visitors[] = new DowngradeUnionTypeVisitor($typeDowngraderHelper);
-			$visitors[] = new DowngradePropertyPromotionVisitor(
-				$this->phpDocLexer,
-				$this->phpDocParser,
-				$phpDocEditor,
-			);
-			$visitors[] = new DowngradeMixedTypeVisitor($typeDowngraderHelper);
-			$visitors[] = new DowngradeStaticReturnTypeVisitor($typeDowngraderHelper);
 
 			if ($composerJsonPath !== null) {
 				$betterReflection = new BetterReflection();
@@ -222,8 +215,17 @@ class DowngradeCommand extends Command
 						])),
 					),
 				);
+				$visitors[] = new DowngradePropertyPromotionVisitor(
+					$this->phpDocLexer,
+					$this->phpDocParser,
+					$phpDocEditor,
+					$reflector,
+				);
 				$visitors[] = new DowngradeNamedArgumentsVisitor($reflector);
 			}
+
+			$visitors[] = new DowngradeMixedTypeVisitor($typeDowngraderHelper);
+			$visitors[] = new DowngradeStaticReturnTypeVisitor($typeDowngraderHelper);
 		}
 
 		return $visitors;
