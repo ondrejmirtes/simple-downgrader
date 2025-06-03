@@ -60,17 +60,6 @@ class DowngradePropertyPromotionVisitor extends NodeVisitorAbstract
 					continue;
 				}
 
-				$promoted = [];
-				$notPromoted = [];
-				foreach ($classStmt->params as $param) {
-					if ($param->flags === 0) {
-						$notPromoted[] = $param;
-						continue;
-					}
-
-					$promoted[] = $param;
-				}
-
 				$phpDocParams = [];
 				if ($classStmt->getDocComment() !== null) {
 					$phpDocNode = $this->parsePhpDoc($classStmt->getDocComment()->getText());
@@ -82,8 +71,12 @@ class DowngradePropertyPromotionVisitor extends NodeVisitorAbstract
 
 				$classStmts = $node->stmts;
 				$methodStmts = $classStmt->stmts;
-				$newParameters = $notPromoted;
-				foreach (array_reverse($promoted) as $p) {
+				$newParameters = [];
+				foreach (array_reverse($classStmt->params) as $p) {
+					if ($p->flags === 0) {
+						$newParameters[] = $p;
+						continue;
+					}
 					if (!$p->var instanceof Node\Expr\Variable || !is_string($p->var->name)) {
 						continue;
 					}
@@ -134,7 +127,7 @@ class DowngradePropertyPromotionVisitor extends NodeVisitorAbstract
 					$p->setAttribute('comments', []);
 				}
 
-				$classStmt->params = $newParameters;
+				$classStmt->params = array_reverse($newParameters);
 
 				$classStmt->stmts = $methodStmts;
 				$node->stmts = $classStmts;
