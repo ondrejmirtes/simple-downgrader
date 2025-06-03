@@ -271,6 +271,37 @@ use MyNamespace\StreamOutput;
 new StreamOutput(\MyNamespace\StreamOutput::VERBOSITY_NORMAL, true);
 PHP,
 		];
+
+		yield [
+			<<<'PHP'
+<?php
+
+class Foo
+{
+	public function __construct(
+		#[\JetBrains\PhpStorm\Deprecated(replacement: 'foo')]
+		public int $foo,
+	)
+	{
+	}
+}
+PHP
+,
+			<<<'PHP'
+<?php
+
+class Foo
+{
+	public function __construct(
+		#[\JetBrains\PhpStorm\Deprecated("", 'foo')]
+		public int $foo,
+	)
+	{
+	}
+}
+PHP
+,
+		];
 	}
 
 }

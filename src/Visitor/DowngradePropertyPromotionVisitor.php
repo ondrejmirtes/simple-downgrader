@@ -14,6 +14,7 @@ use SimpleDowngrader\PhpDoc\PhpDocEditor;
 use function array_key_exists;
 use function array_reverse;
 use function array_unshift;
+use function array_values;
 use function is_string;
 use function substr;
 
@@ -71,6 +72,7 @@ class DowngradePropertyPromotionVisitor extends NodeVisitorAbstract
 
 				$classStmts = $node->stmts;
 				$methodStmts = $classStmt->stmts;
+				$newParameters = [];
 				foreach (array_reverse($promoted) as $p) {
 					if (!$p->var instanceof Node\Expr\Variable || !is_string($p->var->name)) {
 						continue;
@@ -102,9 +104,27 @@ class DowngradePropertyPromotionVisitor extends NodeVisitorAbstract
 							$p->var,
 						),
 					));
-					$p->flags = 0;
+
+					foreach ($p->attrGroups as $pAttrGroup) {
+						$pAttrGroup->setAttributes([]);
+						foreach ($pAttrGroup->attrs as $pAttr) {
+							$pAttr->setAttributes([]);
+						}
+					}
+					$newParameters[] = new Node\Param(
+						$p->var,
+						$p->default,
+						$p->type,
+						$p->byRef,
+						$p->variadic,
+						[],
+						0,
+						array_values($p->attrGroups),
+					);
 					$p->setAttribute('comments', []);
 				}
+
+				$classStmt->params = $newParameters;
 
 				$classStmt->stmts = $methodStmts;
 				$node->stmts = $classStmts;

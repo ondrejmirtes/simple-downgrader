@@ -5,6 +5,7 @@ namespace SimpleDowngrader\Visitor;
 use PhpParser\NodeVisitor;
 use PHPStan\PhpDocParser\Lexer\Lexer;
 use PHPStan\PhpDocParser\ParserConfig;
+use const PHP_VERSION_ID;
 
 class DowngradePropertyPromotionVisitorTest extends AbstractVisitorTestCase
 {
@@ -239,6 +240,52 @@ class SomeClass
 
 		});
     }
+}
+PHP
+,
+		];
+
+		yield [
+			<<<'PHP'
+<?php
+
+class Foo
+{
+	public function __construct(
+		#[\JetBrains\PhpStorm\Deprecated(replacement: 'foo')]
+		public int $foo,
+	)
+	{
+	}
+}
+PHP
+,
+			PHP_VERSION_ID < 80000 ? <<<'PHP'
+<?php
+
+class Foo
+{
+	#[\JetBrains\PhpStorm\Deprecated(replacement: 'foo')]
+	public int $foo;
+	public function __construct(
+		#[\JetBrains\PhpStorm\Deprecated(replacement: 'foo')]
+		int $foo
+	)
+	{
+		$this->foo = $foo;
+	}
+}
+PHP : <<<'PHP'
+<?php
+
+class Foo
+{
+	#[\JetBrains\PhpStorm\Deprecated(replacement: 'foo')]
+	public int $foo;
+	public function __construct(#[\JetBrains\PhpStorm\Deprecated(replacement: 'foo')] int $foo)
+	{
+		$this->foo = $foo;
+	}
 }
 PHP
 ,
