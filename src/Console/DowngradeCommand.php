@@ -10,6 +10,7 @@ use PhpParser\NodeTraverser;
 use PhpParser\NodeVisitor;
 use PhpParser\NodeVisitor\CloningVisitor;
 use PhpParser\Parser;
+use PhpParser\PhpVersion;
 use PHPStan\BetterReflection\BetterReflection;
 use PHPStan\BetterReflection\Reflector\DefaultReflector;
 use PHPStan\BetterReflection\SourceLocator\Type\AggregateSourceLocator;
@@ -131,7 +132,7 @@ class DowngradeCommand extends Command
 
 		$files = $this->findFiles($paths, $excludePaths);
 		foreach ($files as $file) {
-			$this->processFile($file, $this->createDowngradeVisitors($composerJson, $phpVersionId));
+			$this->processFile($file, $this->createDowngradeVisitors($composerJson, $phpVersionId), $php);
 		}
 
 		return 0;
@@ -140,7 +141,7 @@ class DowngradeCommand extends Command
 	/**
 	 * @param list<NodeVisitor> $visitors
 	 */
-	private function processFile(string $file, array $visitors): void
+	private function processFile(string $file, array $visitors, string $phpVersion): void
 	{
 		$contents = file_get_contents($file);
 		if ($contents === false) {
@@ -171,7 +172,7 @@ class DowngradeCommand extends Command
 			$newStmts = $traverser->traverse($newStmts);
 		}
 
-		$printer = new PhpPrinter(['indent' => str_repeat($indentDetector->indentCharacter, $indentDetector->indentSize)]);
+		$printer = new PhpPrinter(['indent' => str_repeat($indentDetector->indentCharacter, $indentDetector->indentSize), 'phpVersion' => PhpVersion::fromString($phpVersion)]);
 		$newCode = $printer->printFormatPreserving($newStmts, $oldStmts, $oldTokens);
 		$result = file_put_contents($file, $newCode);
 		if ($result === false) {

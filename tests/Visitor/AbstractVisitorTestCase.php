@@ -8,7 +8,8 @@ use PhpParser\Node\Stmt;
 use PhpParser\NodeTraverser;
 use PhpParser\NodeVisitor;
 use PhpParser\NodeVisitor\CloningVisitor;
-use PhpParser\Parser\Php7;
+use PhpParser\Parser\Php8;
+use PhpParser\PhpVersion;
 use PHPStan\PhpDocParser\Lexer\Lexer;
 use PHPStan\PhpDocParser\Parser\ConstExprParser;
 use PHPStan\PhpDocParser\Parser\PhpDocParser;
@@ -35,7 +36,7 @@ abstract class AbstractVisitorTestCase extends TestCase
 	public function testVisitor(string $codeBefore, string $codeAfter): void
 	{
 		$lexer = new Emulative();
-		$parser = new Php7($lexer);
+		$parser = new Php8($lexer);
 
 		/** @var Stmt[] $oldStmts */
 		$oldStmts = $parser->parse($codeBefore);
@@ -63,7 +64,7 @@ abstract class AbstractVisitorTestCase extends TestCase
 		/** @var Stmt[] $newStmts */
 		$newStmts = $traverser->traverse($newStmts);
 
-		$printer = new PhpPrinter(['indent' => str_repeat($indentDetector->indentCharacter, $indentDetector->indentSize)]);
+		$printer = new PhpPrinter(['indent' => str_repeat($indentDetector->indentCharacter, $indentDetector->indentSize), 'phpVersion' => PhpVersion::getHostVersion()]);
 		$newCode = $printer->printFormatPreserving($newStmts, $oldStmts, $oldTokens);
 
 		$this->assertSame($codeAfter, $newCode);
