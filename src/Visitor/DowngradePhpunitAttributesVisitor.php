@@ -33,7 +33,7 @@ class DowngradePhpunitAttributesVisitor extends NodeVisitorAbstract
 		/** @var Node\AttributeGroup[] $attrGroups */
 		$attrGroups = $node->attrGroups;
 		if (count($attrGroups) === 0) {
-			return [];
+			return null;
 		}
 
 		$map = [
