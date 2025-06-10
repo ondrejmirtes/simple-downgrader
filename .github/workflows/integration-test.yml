@@ -58,6 +58,7 @@ jobs:
 
       - name: "Downgrade PHPUnit"
         if: matrix.php-version == '7.4' || matrix.php-version == '8.0'
+        shell: bash
         working-directory: "phpstan-src"
         run: "composer require --dev phpunit/phpunit:^9.6 sebastian/diff:^4.0 --update-with-dependencies --ignore-platform-reqs"
 
