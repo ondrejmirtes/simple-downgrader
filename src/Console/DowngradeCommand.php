@@ -28,6 +28,7 @@ use SimpleDowngrader\PhpDoc\PhpDocEditor;
 use SimpleDowngrader\Visitor\DowngradeMixedTypeVisitor;
 use SimpleDowngrader\Visitor\DowngradeNamedArgumentsVisitor;
 use SimpleDowngrader\Visitor\DowngradeNonCapturingCatchesVisitor;
+use SimpleDowngrader\Visitor\DowngradePhpunitAttributesVisitor;
 use SimpleDowngrader\Visitor\DowngradePropertyPromotionVisitor;
 use SimpleDowngrader\Visitor\DowngradePureIntersectionTypeVisitor;
 use SimpleDowngrader\Visitor\DowngradeReadonlyPromotedPropertyVisitor;
@@ -195,6 +196,9 @@ class DowngradeCommand extends Command
 			$visitors[] = new DowngradeReadonlyPropertyVisitor($phpDocEditor);
 			$visitors[] = new DowngradeReadonlyPromotedPropertyVisitor($phpDocEditor);
 			$visitors[] = new DowngradePureIntersectionTypeVisitor($typeDowngraderHelper);
+
+			// assumes PHPUnit 10 on PHP 8.1+
+			$visitors[] = new DowngradePhpunitAttributesVisitor($phpDocEditor);
 		}
 
 		if ($phpVersionId < 80000) {
