@@ -192,13 +192,15 @@ class DowngradeCommand extends Command
 		$followedByCommaAnalyser = new FollowedByCommaAnalyser();
 
 		$visitors = [];
+		if ($phpVersionId < 80200) {
+			// assumes PHPUnit 11 on PHP 8.2+
+			$visitors[] = new DowngradePhpunitAttributesVisitor($phpDocEditor);
+		}
+
 		if ($phpVersionId < 80100) {
 			$visitors[] = new DowngradeReadonlyPropertyVisitor($phpDocEditor);
 			$visitors[] = new DowngradeReadonlyPromotedPropertyVisitor($phpDocEditor);
 			$visitors[] = new DowngradePureIntersectionTypeVisitor($typeDowngraderHelper);
-
-			// assumes PHPUnit 10 on PHP 8.1+
-			$visitors[] = new DowngradePhpunitAttributesVisitor($phpDocEditor);
 		}
 
 		if ($phpVersionId < 80000) {
