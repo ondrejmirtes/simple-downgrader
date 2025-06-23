@@ -60,6 +60,7 @@ use function is_file;
 use function is_string;
 use function preg_quote;
 use function sprintf;
+use function str_contains;
 use function str_repeat;
 use function str_replace;
 
@@ -173,7 +174,12 @@ class DowngradeCommand extends Command
 			$newStmts = $traverser->traverse($newStmts);
 		}
 
-		$printer = new PhpPrinter(['indent' => str_repeat($indentDetector->indentCharacter, $indentDetector->indentSize), 'phpVersion' => PhpVersion::fromString($phpVersion)]);
+		if (str_contains($indentDetector->indentCharacter, "\t")) {
+			$indent = "\t";
+		} else {
+			$indent = str_repeat($indentDetector->indentCharacter, $indentDetector->indentSize);
+		}
+		$printer = new PhpPrinter(['indent' => $indent, 'phpVersion' => PhpVersion::fromString($phpVersion)]);
 		$newCode = $printer->printFormatPreserving($newStmts, $oldStmts, $oldTokens);
 		$result = file_put_contents($file, $newCode);
 		if ($result === false) {

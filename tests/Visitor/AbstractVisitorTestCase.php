@@ -20,6 +20,7 @@ use PHPUnit\Framework\TestCase;
 use SimpleDowngrader\Php\PhpPrinter;
 use SimpleDowngrader\Php\PhpPrinterIndentationDetectorVisitor;
 use SimpleDowngrader\PhpDoc\PhpDocEditor;
+use function str_contains;
 use function str_repeat;
 
 abstract class AbstractVisitorTestCase extends TestCase
@@ -64,7 +65,12 @@ abstract class AbstractVisitorTestCase extends TestCase
 		/** @var Stmt[] $newStmts */
 		$newStmts = $traverser->traverse($newStmts);
 
-		$printer = new PhpPrinter(['indent' => str_repeat($indentDetector->indentCharacter, $indentDetector->indentSize), 'phpVersion' => PhpVersion::getHostVersion()]);
+		if (str_contains($indentDetector->indentCharacter, "\t")) {
+			$indent = "\t";
+		} else {
+			$indent = str_repeat($indentDetector->indentCharacter, $indentDetector->indentSize);
+		}
+		$printer = new PhpPrinter(['indent' => $indent, 'phpVersion' => PhpVersion::getHostVersion()]);
 		$newCode = $printer->printFormatPreserving($newStmts, $oldStmts, $oldTokens);
 
 		$this->assertSame($codeAfter, $newCode);
