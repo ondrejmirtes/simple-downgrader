@@ -34,10 +34,10 @@ jobs:
 
     steps:
       - name: "Checkout"
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: "Checkout phpstan-src"
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           repository: phpstan/phpstan-src
           path: phpstan-src
