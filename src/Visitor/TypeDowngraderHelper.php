@@ -105,10 +105,6 @@ class TypeDowngraderHelper
 						return null;
 					}
 
-					if ($node->returnType === null) {
-						return null;
-					}
-
 					$resultType = $callable($node->returnType);
 					if ($resultType === null) {
 						return null;
