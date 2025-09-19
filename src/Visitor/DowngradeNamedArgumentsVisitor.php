@@ -6,34 +6,31 @@ use Exception;
 use PhpParser\Node;
 use PhpParser\Node\Arg;
 use PhpParser\NodeVisitorAbstract;
-use PHPStan\BetterReflection\Reflection\ReflectionParameter;
-use PHPStan\BetterReflection\Reflector\Exception\IdentifierNotFound;
-use PHPStan\BetterReflection\Reflector\Reflector;
 use ReflectionClass;
+use ReflectionException;
+use ReflectionFunction;
+use ReflectionParameter;
+use RuntimeException;
 use function array_key_exists;
 use function array_keys;
 use function array_pop;
 use function array_values;
 use function count;
 use function in_array;
+use function is_int;
+use function is_string;
 use function ksort;
 use function max;
 use function sprintf;
+use function var_export;
 
 class DowngradeNamedArgumentsVisitor extends NodeVisitorAbstract
 {
 
 	public const ORIGINAL_ARG_ATTRIBUTE = 'originalArg';
 
-	private Reflector $reflector;
-
 	/** @var list<Node\Name|null> */
 	private array $classLikeStack = [];
-
-	public function __construct(Reflector $reflector)
-	{
-		$this->reflector = $reflector;
-	}
 
 	public function enterNode(Node $node)
 	{
@@ -93,8 +90,8 @@ class DowngradeNamedArgumentsVisitor extends NodeVisitorAbstract
 				return null;
 			}
 			try {
-				$function = $this->reflector->reflectFunction($node->name->toString());
-			} catch (IdentifierNotFound $e) {
+				$function = new ReflectionFunction($node->name->toString());
+			} catch (ReflectionException $e) {
 				return null;
 			}
 
@@ -116,7 +113,7 @@ class DowngradeNamedArgumentsVisitor extends NodeVisitorAbstract
 					if ($parameter->isOptional()) {
 						continue;
 					}
-					if ($parameter->getDefaultValueExpression() !== null) {
+					if ($parameter->getDefaultValue() !== null) {
 						$refPropOptional->setValue($parameter, true);
 						$optionalOccurred = true;
 						continue;
@@ -147,8 +144,8 @@ class DowngradeNamedArgumentsVisitor extends NodeVisitorAbstract
 			$accessedClassName = $this->resolveName($node->class, $this->classLikeStack[count($this->classLikeStack) - 1] ?? null);
 
 			try {
-				$class = $this->reflector->reflectClass($accessedClassName);
-			} catch (IdentifierNotFound $e) {
+				$class = new ReflectionClass($accessedClassName);
+			} catch (ReflectionException $e) {
 				return null;
 			}
 
@@ -179,16 +176,16 @@ class DowngradeNamedArgumentsVisitor extends NodeVisitorAbstract
 			$accessedClassName = $this->resolveName($node->class, $this->classLikeStack[count($this->classLikeStack) - 1] ?? null);
 
 			try {
-				$class = $this->reflector->reflectClass($accessedClassName);
-			} catch (IdentifierNotFound $e) {
+				$class = new ReflectionClass($accessedClassName);
+			} catch (ReflectionException $e) {
+				return null;
+			}
+
+			if (!$class->hasMethod($node->name->toString())) {
 				return null;
 			}
 
 			$method = $class->getMethod($node->name->toString());
-			if ($method === null) {
-				return null;
-			}
-
 			$newArgs = $this->downgradeArgs(array_values($node->getArgs()), $method->getParameters(), $accessedClassName);
 			if ($newArgs === null) {
 				return null;
@@ -226,12 +223,12 @@ class DowngradeNamedArgumentsVisitor extends NodeVisitorAbstract
 
 		if ($name->toLowerString() === 'parent') {
 			try {
-				$class = $this->reflector->reflectClass($inClassName->toString());
+				$class = new ReflectionClass($inClassName->toString());
 				$parent = $class->getParentClass();
-				if ($parent === null) {
+				if ($parent === false) {
 					return $stringName;
 				}
-			} catch (IdentifierNotFound $e) {
+			} catch (ReflectionException $e) {
 				return $stringName;
 			}
 
@@ -253,8 +250,8 @@ class DowngradeNamedArgumentsVisitor extends NodeVisitorAbstract
 					continue;
 				}
 				try {
-					$class = $this->reflector->reflectClass($attr->name->toString());
-				} catch (IdentifierNotFound $e) {
+					$class = new ReflectionClass($attr->name->toString());
+				} catch (ReflectionException $e) {
 					continue;
 				}
 
@@ -402,14 +399,17 @@ class DowngradeNamedArgumentsVisitor extends NodeVisitorAbstract
 				return null;
 			}
 
-			$defaultValue = $parameter->getDefaultValueExpression();
-			if ($defaultValue === null) {
+			if (!$parameter->isDefaultValueAvailable()) {
 				if (!$parameter->isVariadic()) {
 					throw new Exception(sprintf('An optional parameter $%s must have a default value', $parameter->getName()));
 				}
 				$defaultValue = new Node\Expr\Array_();
-			} elseif ($defaultValue instanceof Node\Expr\ClassConstFetch && $defaultValue->class instanceof Node\Name) {
-				$defaultValue->class = new Node\Name\FullyQualified($this->resolveName($defaultValue->class, $accessedClassName === null ? null : new Node\Name($accessedClassName)));
+			} elseif (is_string($parameter->getDefaultValue())) {
+				$defaultValue = new Node\Scalar\String_($parameter->getDefaultValue());
+			} elseif (is_int($parameter->getDefaultValue())) {
+				$defaultValue = new Node\Scalar\Int_($parameter->getDefaultValue());
+			} else {
+				throw new RuntimeException(sprintf('Unexpected value %s', var_export($parameter->getDefaultValue(), true)));
 			}
 
 			$reorderedArgs[$j] = new Arg($defaultValue);
