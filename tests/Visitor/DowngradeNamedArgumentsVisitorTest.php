@@ -239,7 +239,7 @@ PHP,
 			<<<'PHP'
 <?php
 
-use MyNamespace\StreamOutput;
+use SimpleDowngrader\Fixtures\StreamOutput;
 
 new StreamOutput(decorated: true);
 PHP
@@ -247,9 +247,9 @@ PHP
 			<<<'PHP'
 <?php
 
-use MyNamespace\StreamOutput;
+use SimpleDowngrader\Fixtures\StreamOutput;
 
-new StreamOutput(\MyNamespace\StreamOutput::VERBOSITY_NORMAL, true);
+new StreamOutput(\SimpleDowngrader\Fixtures\StreamOutput::VERBOSITY_NORMAL, true);
 PHP,
 		];
 
