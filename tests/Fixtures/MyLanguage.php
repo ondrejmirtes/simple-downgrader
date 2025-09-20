@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types = 1);
 
 namespace SimpleDowngrader\Fixtures;
 
@@ -7,8 +7,12 @@ use Attribute;
 #[Attribute(Attribute::TARGET_PARAMETER)]
 class MyLanguage
 {
+
 	/**
 	 * @param string $languageName Language name like "PHP", "SQL", "RegExp", etc...
 	 */
-	public function __construct(string $languageName) {}
+	public function __construct(string $languageName)
+	{
+	}
+
 }
