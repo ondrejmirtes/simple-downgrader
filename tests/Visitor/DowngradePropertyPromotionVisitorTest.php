@@ -3,33 +3,18 @@
 namespace SimpleDowngrader\Visitor;
 
 use PhpParser\NodeVisitor;
-use PHPStan\BetterReflection\BetterReflection;
-use PHPStan\BetterReflection\Reflector\DefaultReflector;
-use PHPStan\BetterReflection\SourceLocator\Type\AggregateSourceLocator;
-use PHPStan\BetterReflection\SourceLocator\Type\DirectoriesSourceLocator;
-use PHPStan\BetterReflection\SourceLocator\Type\PhpInternalSourceLocator;
 use PHPStan\PhpDocParser\Lexer\Lexer;
 use PHPStan\PhpDocParser\ParserConfig;
-use const PHP_VERSION_ID;
 
 class DowngradePropertyPromotionVisitorTest extends AbstractVisitorTestCase
 {
 
 	protected function getVisitor(): NodeVisitor
 	{
-		$betterReflection = new BetterReflection();
-		$astLocator = $betterReflection->astLocator();
-		$sourceStubber = $betterReflection->sourceStubber();
-		$reflector = new DefaultReflector(new AggregateSourceLocator([
-			new DirectoriesSourceLocator([__DIR__ . '/../../vendor/jetbrains/phpstorm-stubs/meta/attributes'], $astLocator),
-			new PhpInternalSourceLocator($astLocator, $sourceStubber),
-		]));
-
 		return new DowngradePropertyPromotionVisitor(
 			new Lexer(new ParserConfig([])),
 			$this->createPhpDocParser(),
 			$this->createPhpDocEditor(),
-			$reflector,
 		);
 	}
 
@@ -242,22 +227,7 @@ class Foo
 }
 PHP
 ,
-			PHP_VERSION_ID < 80000 ? <<<'PHP'
-<?php
-
-class Foo
-{
-	#[\SimpleDowngrader\Fixtures\MyDeprecated(since: 'foo')]
-	public int $foo;
-	public function __construct(
-		#[\SimpleDowngrader\Fixtures\MyDeprecated(since: 'foo')]
-		int $foo
-	)
-	{
-		$this->foo = $foo;
-	}
-}
-PHP : <<<'PHP'
+			<<<'PHP'
 <?php
 
 class Foo
@@ -273,25 +243,24 @@ PHP
 ,
 		];
 
-		if (PHP_VERSION_ID >= 80000) {
-			yield [
-				<<<'PHP'
+		yield [
+			<<<'PHP'
 <?php
 
 class Foo
 {
 	public function __construct(
-		#[\JetBrains\PhpStorm\Immutable]
+		#[\SimpleDowngrader\Fixtures\MyImmutable]
 		public int $foo,
 	) {}
 }
 PHP,
-				<<<'PHP'
+			<<<'PHP'
 <?php
 
 class Foo
 {
-	#[\JetBrains\PhpStorm\Immutable]
+	#[\SimpleDowngrader\Fixtures\MyImmutable]
 	public int $foo;
 	public function __construct(int $foo)
 	{
@@ -299,36 +268,33 @@ class Foo
 	}
 }
 PHP,
-			];
-		}
+		];
 
-		if (PHP_VERSION_ID >= 80000) {
-			yield [
-				<<<'PHP'
+		yield [
+			<<<'PHP'
 <?php
 
 class Foo
 {
 	public function __construct(
-		#[\JetBrains\PhpStorm\Language]
+		#[\SimpleDowngrader\Fixtures\MyLanguage]
 		public int $foo,
 	) {}
 }
 PHP,
-				<<<'PHP'
+			<<<'PHP'
 <?php
 
 class Foo
 {
 	public int $foo;
-	public function __construct(#[\JetBrains\PhpStorm\Language] int $foo)
+	public function __construct(#[\SimpleDowngrader\Fixtures\MyLanguage] int $foo)
 	{
 		$this->foo = $foo;
 	}
 }
 PHP,
-			];
-		}
+		];
 
 		yield [
 			<<<'PHP'

@@ -11,16 +11,9 @@ use PhpParser\NodeVisitor;
 use PhpParser\NodeVisitor\CloningVisitor;
 use PhpParser\Parser;
 use PhpParser\PhpVersion;
-use PHPStan\BetterReflection\BetterReflection;
-use PHPStan\BetterReflection\Reflector\DefaultReflector;
-use PHPStan\BetterReflection\SourceLocator\Type\AggregateSourceLocator;
-use PHPStan\BetterReflection\SourceLocator\Type\Composer\Factory\MakeLocatorForComposerJsonAndInstalledJson;
-use PHPStan\BetterReflection\SourceLocator\Type\MemoizingSourceLocator;
-use PHPStan\BetterReflection\SourceLocator\Type\PhpInternalSourceLocator;
 use PHPStan\PhpDocParser\Lexer\Lexer;
 use PHPStan\PhpDocParser\Parser\PhpDocParser;
 use PHPStan\PhpDocParser\Printer\Printer;
-use SimpleDowngrader\BetterReflection\MemoizingReflector;
 use SimpleDowngrader\Php\FollowedByCommaAnalyser;
 use SimpleDowngrader\Php\PhpPrinter;
 use SimpleDowngrader\Php\PhpPrinterIndentationDetectorVisitor;
@@ -48,7 +41,6 @@ use Symfony\Component\Finder\Finder;
 use Symfony\Component\Finder\SplFileInfo;
 use function array_map;
 use function count;
-use function dirname;
 use function explode;
 use function file_get_contents;
 use function file_put_contents;
@@ -216,24 +208,12 @@ class DowngradeCommand extends Command
 			$visitors[] = new DowngradeUnionTypeVisitor($typeDowngraderHelper);
 
 			if ($composerJsonPath !== null) {
-				$betterReflection = new BetterReflection();
-				$astLocator = $betterReflection->astLocator();
-				$sourceStubber = $betterReflection->sourceStubber();
-				$reflector = new MemoizingReflector(
-					new DefaultReflector(
-						new MemoizingSourceLocator(new AggregateSourceLocator([
-							(new MakeLocatorForComposerJsonAndInstalledJson())(dirname($composerJsonPath), $astLocator),
-							new PhpInternalSourceLocator($astLocator, $sourceStubber),
-						])),
-					),
-				);
 				$visitors[] = new DowngradePropertyPromotionVisitor(
 					$this->phpDocLexer,
 					$this->phpDocParser,
 					$phpDocEditor,
-					$reflector,
 				);
-				$visitors[] = new DowngradeNamedArgumentsVisitor($reflector);
+				$visitors[] = new DowngradeNamedArgumentsVisitor();
 			}
 
 			$visitors[] = new DowngradeMixedTypeVisitor($typeDowngraderHelper);

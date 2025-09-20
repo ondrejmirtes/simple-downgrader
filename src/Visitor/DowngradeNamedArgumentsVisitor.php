@@ -6,34 +6,33 @@ use Exception;
 use PhpParser\Node;
 use PhpParser\Node\Arg;
 use PhpParser\NodeVisitorAbstract;
-use PHPStan\BetterReflection\Reflection\ReflectionParameter;
-use PHPStan\BetterReflection\Reflector\Exception\IdentifierNotFound;
-use PHPStan\BetterReflection\Reflector\Reflector;
 use ReflectionClass;
+use ReflectionException;
+use ReflectionFunction;
+use ReflectionParameter;
+use RuntimeException;
 use function array_key_exists;
 use function array_keys;
 use function array_pop;
 use function array_values;
 use function count;
 use function in_array;
+use function is_array;
+use function is_int;
+use function is_null;
+use function is_string;
 use function ksort;
 use function max;
 use function sprintf;
+use function var_export;
 
 class DowngradeNamedArgumentsVisitor extends NodeVisitorAbstract
 {
 
 	public const ORIGINAL_ARG_ATTRIBUTE = 'originalArg';
 
-	private Reflector $reflector;
-
 	/** @var list<Node\Name|null> */
 	private array $classLikeStack = [];
-
-	public function __construct(Reflector $reflector)
-	{
-		$this->reflector = $reflector;
-	}
 
 	public function enterNode(Node $node)
 	{
@@ -93,44 +92,12 @@ class DowngradeNamedArgumentsVisitor extends NodeVisitorAbstract
 				return null;
 			}
 			try {
-				$function = $this->reflector->reflectFunction($node->name->toString());
-			} catch (IdentifierNotFound $e) {
+				$function = new ReflectionFunction($node->name->toString());
+			} catch (ReflectionException $e) {
 				return null;
 			}
 
-			$refParameter = new ReflectionClass(ReflectionParameter::class);
-			$refPropOptional = $refParameter->getProperty('isOptional');
-			$refPropOptional->setAccessible(true);
-
-			$parameters = $function->getParameters();
-			if (in_array($function->getName(), ['array_slice', 'array_splice'], true)) {
-				$length = $parameters[2];
-				$refPropOptional->setValue($length, true);
-
-				$refPropDefault = $refParameter->getProperty('default');
-				$refPropDefault->setAccessible(true);
-				$refPropDefault->setValue($length, new Node\Expr\ConstFetch(new Node\Name('null')));
-			} else {
-				$optionalOccurred = false;
-				foreach ($parameters as $parameter) {
-					if ($parameter->isOptional()) {
-						continue;
-					}
-					if ($parameter->getDefaultValueExpression() !== null) {
-						$refPropOptional->setValue($parameter, true);
-						$optionalOccurred = true;
-						continue;
-					}
-
-					if (!$optionalOccurred) {
-						continue;
-					}
-
-					$refPropOptional->setValue($parameter, true);
-				}
-			}
-
-			$newArgs = $this->downgradeArgs(array_values($node->getArgs()), $function->getParameters(), null);
+			$newArgs = $this->downgradeArgs(array_values($node->getArgs()), $function->getParameters());
 			if ($newArgs === null) {
 				return null;
 			}
@@ -147,8 +114,8 @@ class DowngradeNamedArgumentsVisitor extends NodeVisitorAbstract
 			$accessedClassName = $this->resolveName($node->class, $this->classLikeStack[count($this->classLikeStack) - 1] ?? null);
 
 			try {
-				$class = $this->reflector->reflectClass($accessedClassName);
-			} catch (IdentifierNotFound $e) {
+				$class = new ReflectionClass($accessedClassName); /** @phpstan-ignore argument.type */
+			} catch (ReflectionException $e) {
 				return null;
 			}
 
@@ -157,7 +124,7 @@ class DowngradeNamedArgumentsVisitor extends NodeVisitorAbstract
 				return null;
 			}
 
-			$newArgs = $this->downgradeArgs(array_values($node->getArgs()), $constructor->getParameters(), $accessedClassName);
+			$newArgs = $this->downgradeArgs(array_values($node->getArgs()), $constructor->getParameters());
 			if ($newArgs === null) {
 				return null;
 			}
@@ -179,17 +146,17 @@ class DowngradeNamedArgumentsVisitor extends NodeVisitorAbstract
 			$accessedClassName = $this->resolveName($node->class, $this->classLikeStack[count($this->classLikeStack) - 1] ?? null);
 
 			try {
-				$class = $this->reflector->reflectClass($accessedClassName);
-			} catch (IdentifierNotFound $e) {
+				$class = new ReflectionClass($accessedClassName); /** @phpstan-ignore argument.type */
+			} catch (ReflectionException $e) {
+				return null;
+			}
+
+			if (!$class->hasMethod($node->name->toString())) {
 				return null;
 			}
 
 			$method = $class->getMethod($node->name->toString());
-			if ($method === null) {
-				return null;
-			}
-
-			$newArgs = $this->downgradeArgs(array_values($node->getArgs()), $method->getParameters(), $accessedClassName);
+			$newArgs = $this->downgradeArgs(array_values($node->getArgs()), $method->getParameters());
 			if ($newArgs === null) {
 				return null;
 			}
@@ -226,12 +193,12 @@ class DowngradeNamedArgumentsVisitor extends NodeVisitorAbstract
 
 		if ($name->toLowerString() === 'parent') {
 			try {
-				$class = $this->reflector->reflectClass($inClassName->toString());
+				$class = new ReflectionClass($inClassName->toString()); /** @phpstan-ignore argument.type */
 				$parent = $class->getParentClass();
-				if ($parent === null) {
+				if ($parent === false) {
 					return $stringName;
 				}
-			} catch (IdentifierNotFound $e) {
+			} catch (ReflectionException $e) {
 				return $stringName;
 			}
 
@@ -253,8 +220,8 @@ class DowngradeNamedArgumentsVisitor extends NodeVisitorAbstract
 					continue;
 				}
 				try {
-					$class = $this->reflector->reflectClass($attr->name->toString());
-				} catch (IdentifierNotFound $e) {
+					$class = new ReflectionClass($attr->name->toString()); /** @phpstan-ignore argument.type */
+				} catch (ReflectionException $e) {
 					continue;
 				}
 
@@ -263,7 +230,7 @@ class DowngradeNamedArgumentsVisitor extends NodeVisitorAbstract
 					continue;
 				}
 
-				$newArgs = $this->downgradeArgs($attr->args, $constructor->getParameters(), null);
+				$newArgs = $this->downgradeArgs($attr->args, $constructor->getParameters());
 				if ($newArgs === null) {
 					continue;
 				}
@@ -295,7 +262,7 @@ class DowngradeNamedArgumentsVisitor extends NodeVisitorAbstract
 	 * @param list<ReflectionParameter> $parameters
 	 * @return list<Arg>|null
 	 */
-	private function downgradeArgs(array $args, array $parameters, ?string $accessedClassName): ?array
+	private function downgradeArgs(array $args, array $parameters): ?array
 	{
 		if (count($args) === 0) {
 			return [];
@@ -402,14 +369,15 @@ class DowngradeNamedArgumentsVisitor extends NodeVisitorAbstract
 				return null;
 			}
 
-			$defaultValue = $parameter->getDefaultValueExpression();
-			if ($defaultValue === null) {
+			if (!$parameter->isDefaultValueAvailable()) {
 				if (!$parameter->isVariadic()) {
 					throw new Exception(sprintf('An optional parameter $%s must have a default value', $parameter->getName()));
 				}
+
 				$defaultValue = new Node\Expr\Array_();
-			} elseif ($defaultValue instanceof Node\Expr\ClassConstFetch && $defaultValue->class instanceof Node\Name) {
-				$defaultValue->class = new Node\Name\FullyQualified($this->resolveName($defaultValue->class, $accessedClassName === null ? null : new Node\Name($accessedClassName)));
+
+			} else {
+				$defaultValue = $this->constantToExpr($parameter->getDefaultValue());
 			}
 
 			$reorderedArgs[$j] = new Arg($defaultValue);
@@ -422,6 +390,32 @@ class DowngradeNamedArgumentsVisitor extends NodeVisitorAbstract
 		}
 
 		return array_values($reorderedArgs);
+	}
+
+	/**
+	 * @param mixed $value
+	 */
+	private function constantToExpr($value): Node\Expr
+	{
+		if (is_string($value)) {
+			return new Node\Scalar\String_($value);
+		} elseif (is_int($value)) {
+			return new Node\Scalar\Int_($value);
+		} elseif ($value === true) {
+			return new Node\Expr\ConstFetch(new Node\Name\FullyQualified('true'));
+		} elseif ($value === false) {
+			return new Node\Expr\ConstFetch(new Node\Name\FullyQualified('false'));
+		} elseif (is_array($value)) {
+			$items = [];
+			foreach ($value as $key => $val) {
+				$items[] = new Node\ArrayItem($this->constantToExpr($val), $this->constantToExpr($key));
+			}
+			return new Node\Expr\Array_($items);
+		} elseif (is_null($value)) {
+			return new Node\Expr\ConstFetch(new Node\Name\FullyQualified('null'));
+		}
+
+		throw new RuntimeException(sprintf('Unexpected value %s', var_export($value, true)));
 	}
 
 }
