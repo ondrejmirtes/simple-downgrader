@@ -3,11 +3,6 @@
 namespace SimpleDowngrader\Visitor;
 
 use PhpParser\NodeVisitor;
-use PHPStan\BetterReflection\BetterReflection;
-use PHPStan\BetterReflection\Reflector\DefaultReflector;
-use PHPStan\BetterReflection\SourceLocator\Type\AggregateSourceLocator;
-use PHPStan\BetterReflection\SourceLocator\Type\DirectoriesSourceLocator;
-use PHPStan\BetterReflection\SourceLocator\Type\PhpInternalSourceLocator;
 use PHPStan\PhpDocParser\Lexer\Lexer;
 use PHPStan\PhpDocParser\ParserConfig;
 use const PHP_VERSION_ID;

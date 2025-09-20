@@ -375,9 +375,9 @@ class DowngradeNamedArgumentsVisitor extends NodeVisitorAbstract
 						throw new Exception(sprintf('Optional parameter $%s of %s must have a default value', $parameter->getName(), $node->name->toString()));
 					}
 					throw new Exception(sprintf('An optional parameter $%s must have a default value', $parameter->getName()));
-				} else {
-					$defaultValue = new Node\Expr\Array_();
 				}
+
+				$defaultValue = new Node\Expr\Array_();
 
 			} else {
 				$defaultValue = $this->constantToExpr($parameter->getDefaultValue());

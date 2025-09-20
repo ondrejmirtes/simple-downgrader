@@ -36,7 +36,7 @@ class DowngradePropertyPromotionVisitor extends NodeVisitorAbstract
 	public function __construct(
 		Lexer $lexer,
 		PhpDocParser $phpDocParser,
-		PhpDocEditor $phpDocEditor,
+		PhpDocEditor $phpDocEditor
 	)
 	{
 		$this->lexer = $lexer;
