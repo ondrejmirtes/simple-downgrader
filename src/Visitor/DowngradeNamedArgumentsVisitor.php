@@ -381,6 +381,8 @@ class DowngradeNamedArgumentsVisitor extends NodeVisitorAbstract
 				$defaultValue = new Node\Expr\ConstFetch(new Node\Name\FullyQualified('true'));
 			} elseif ($parameter->getDefaultValue() === false) {
 				$defaultValue = new Node\Expr\ConstFetch(new Node\Name\FullyQualified('false'));
+			} elseif (is_array($parameter->getDefaultValue())) {
+				$defaultValue = new Node\Expr\Array_($parameter->getDefaultValue());
 			} elseif (is_null($parameter->getDefaultValue())) {
 				$defaultValue = new Node\Expr\ConstFetch(new Node\Name\FullyQualified('null'));
 			} else {
