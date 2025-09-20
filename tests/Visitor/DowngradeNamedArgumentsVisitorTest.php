@@ -212,13 +212,15 @@ PHP,
 			<<<'PHP'
 <?php
 
+// 777 octal is 511 in decimal
 @mkdir(dirname($symbolsFile), recursive: true);
 PHP
 ,
 			<<<'PHP'
 <?php
 
-@mkdir(dirname($symbolsFile), 0777, true);
+// 777 octal is 511 in decimal
+@mkdir(dirname($symbolsFile), 511, true);
 PHP,
 		];
 
