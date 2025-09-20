@@ -234,7 +234,7 @@ PHP
 class Foo
 {
 	public function __construct(
-		#[\JetBrains\PhpStorm\Deprecated(replacement: 'foo')]
+		#[\SimpleDowngrader\Fixtures\MyDeprecated(since: 'foo')]
 		public int $foo,
 	)
 	{
@@ -247,10 +247,10 @@ PHP
 
 class Foo
 {
-	#[\JetBrains\PhpStorm\Deprecated(replacement: 'foo')]
+	#[\SimpleDowngrader\Fixtures\MyDeprecated(since: 'foo')]
 	public int $foo;
 	public function __construct(
-		#[\JetBrains\PhpStorm\Deprecated(replacement: 'foo')]
+		#[\SimpleDowngrader\Fixtures\MyDeprecated(since: 'foo')]
 		int $foo
 	)
 	{
@@ -262,9 +262,9 @@ PHP : <<<'PHP'
 
 class Foo
 {
-	#[\JetBrains\PhpStorm\Deprecated(replacement: 'foo')]
+	#[\SimpleDowngrader\Fixtures\MyDeprecated(since: 'foo')]
 	public int $foo;
-	public function __construct(#[\JetBrains\PhpStorm\Deprecated(replacement: 'foo')] int $foo)
+	public function __construct(#[\SimpleDowngrader\Fixtures\MyDeprecated(since: 'foo')] int $foo)
 	{
 		$this->foo = $foo;
 	}
