@@ -41,7 +41,6 @@ PHP,
 				$astLocator,
 			),
 			new DirectoriesSourceLocator([__DIR__ . '/../../tests/Fixtures'], $astLocator),
-			new DirectoriesSourceLocator([__DIR__ . '/../../vendor/jetbrains/phpstorm-stubs/meta/attributes'], $astLocator),
 			new PhpInternalSourceLocator($astLocator, $sourceStubber),
 		])));
 	}
