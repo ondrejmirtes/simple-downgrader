@@ -17,6 +17,7 @@ use function array_pop;
 use function array_values;
 use function count;
 use function in_array;
+use function is_array;
 use function is_int;
 use function is_null;
 use function is_string;
