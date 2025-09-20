@@ -14,7 +14,8 @@ class MyDeprecated
 
 	public function __construct(?string $message = null, ?string $since = null)
 	{
-		/* … */
+		$this->message = $message;
+		$this->since = $since;
 	}
 
 }
