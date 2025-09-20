@@ -8,7 +8,6 @@ use PHPStan\BetterReflection\Reflector\DefaultReflector;
 use PHPStan\BetterReflection\SourceLocator\Type\AggregateSourceLocator;
 use PHPStan\BetterReflection\SourceLocator\Type\DirectoriesSourceLocator;
 use PHPStan\BetterReflection\SourceLocator\Type\PhpInternalSourceLocator;
-use PHPStan\BetterReflection\SourceLocator\Type\StringSourceLocator;
 use const PHP_VERSION_ID;
 
 class DowngradeNamedArgumentsVisitorTest extends AbstractVisitorTestCase
@@ -249,7 +248,7 @@ PHP
 
 use SimpleDowngrader\Fixtures\StreamOutput;
 
-new StreamOutput(1, true);
+new StreamOutput(\SimpleDowngrader\Fixtures\StreamOutput::VERBOSITY_NORMAL, true);
 PHP,
 		];
 
