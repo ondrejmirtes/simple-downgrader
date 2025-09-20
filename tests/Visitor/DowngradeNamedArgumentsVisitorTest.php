@@ -21,25 +21,6 @@ class DowngradeNamedArgumentsVisitorTest extends AbstractVisitorTestCase
 		$sourceStubber = $betterReflection->sourceStubber();
 
 		return new DowngradeNamedArgumentsVisitor(new DefaultReflector(new AggregateSourceLocator([
-			new StringSourceLocator(
-				<<<'PHP'
-<?php
-
-namespace MyNamespace;
-
-class StreamOutput
-{
-
-	public const VERBOSITY_NORMAL = 1;
-
-	public function __construct(int $verbosity = self::VERBOSITY_NORMAL, bool $decorated = false)
-	{
-	}
-
-}
-PHP,
-				$astLocator,
-			),
 			new DirectoriesSourceLocator([__DIR__ . '/../../tests/Fixtures'], $astLocator),
 			new PhpInternalSourceLocator($astLocator, $sourceStubber),
 		])));
