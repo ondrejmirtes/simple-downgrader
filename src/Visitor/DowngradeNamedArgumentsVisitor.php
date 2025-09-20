@@ -386,7 +386,7 @@ class DowngradeNamedArgumentsVisitor extends NodeVisitorAbstract
 				}
 
 			} else {
-				$defaultValue = $this->scalarToExpr($parameter->getDefaultValue());
+				$defaultValue = $this->constantToExpr($parameter->getDefaultValue());
 			}
 
 			$reorderedArgs[$j] = new Arg($defaultValue);
@@ -404,7 +404,7 @@ class DowngradeNamedArgumentsVisitor extends NodeVisitorAbstract
 	/**
 	 * @param mixed $value
 	 */
-	private function scalarToExpr($value): Node\Expr
+	private function constantToExpr($value): Node\Expr
 	{
 		if (is_string($value)) {
 			return new Node\Scalar\String_($value);
@@ -417,7 +417,7 @@ class DowngradeNamedArgumentsVisitor extends NodeVisitorAbstract
 		} elseif (is_array($value)) {
 			$items = [];
 			foreach ($value as $key => $val) {
-				$items[] = new Node\ArrayItem($this->scalarToExpr($val), $this->scalarToExpr($key));
+				$items[] = new Node\ArrayItem($this->constantToExpr($val), $this->constantToExpr($key));
 			}
 			return new Node\Expr\Array_($items);
 		} elseif (is_null($value)) {
