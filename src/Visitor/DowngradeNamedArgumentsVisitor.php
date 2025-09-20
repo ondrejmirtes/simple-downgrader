@@ -17,7 +17,6 @@ use function array_pop;
 use function array_values;
 use function count;
 use function in_array;
-use function is_array;
 use function is_int;
 use function is_null;
 use function is_string;
@@ -97,7 +96,7 @@ class DowngradeNamedArgumentsVisitor extends NodeVisitorAbstract
 				return null;
 			}
 
-			$newArgs = $this->downgradeArgs(array_values($node->getArgs()), $function->getParameters(), null);
+			$newArgs = $this->downgradeArgs($node, array_values($node->getArgs()), $function->getParameters(), null);
 			if ($newArgs === null) {
 				return null;
 			}
@@ -124,7 +123,7 @@ class DowngradeNamedArgumentsVisitor extends NodeVisitorAbstract
 				return null;
 			}
 
-			$newArgs = $this->downgradeArgs(array_values($node->getArgs()), $constructor->getParameters(), $accessedClassName);
+			$newArgs = $this->downgradeArgs($node, array_values($node->getArgs()), $constructor->getParameters(), $accessedClassName);
 			if ($newArgs === null) {
 				return null;
 			}
@@ -156,7 +155,7 @@ class DowngradeNamedArgumentsVisitor extends NodeVisitorAbstract
 			}
 
 			$method = $class->getMethod($node->name->toString());
-			$newArgs = $this->downgradeArgs(array_values($node->getArgs()), $method->getParameters(), $accessedClassName);
+			$newArgs = $this->downgradeArgs($node, array_values($node->getArgs()), $method->getParameters(), $accessedClassName);
 			if ($newArgs === null) {
 				return null;
 			}
@@ -230,7 +229,7 @@ class DowngradeNamedArgumentsVisitor extends NodeVisitorAbstract
 					continue;
 				}
 
-				$newArgs = $this->downgradeArgs($attr->args, $constructor->getParameters(), null);
+				$newArgs = $this->downgradeArgs(null, $attr->args, $constructor->getParameters(), null);
 				if ($newArgs === null) {
 					continue;
 				}
@@ -262,7 +261,7 @@ class DowngradeNamedArgumentsVisitor extends NodeVisitorAbstract
 	 * @param list<ReflectionParameter> $parameters
 	 * @return list<Arg>|null
 	 */
-	private function downgradeArgs(array $args, array $parameters, ?string $accessedClassName): ?array
+	private function downgradeArgs(?Node\Expr\CallLike $node, array $args, array $parameters, ?string $accessedClassName): ?array
 	{
 		if (count($args) === 0) {
 			return [];
@@ -363,6 +362,7 @@ class DowngradeNamedArgumentsVisitor extends NodeVisitorAbstract
 			}
 
 			$parameter = $parameters[$j];
+			$defaultValue = $parameter->getDefaultValue();
 
 			// we can only fill up optional parameters with default values
 			if (!$parameter->isOptional()) {
@@ -373,21 +373,31 @@ class DowngradeNamedArgumentsVisitor extends NodeVisitorAbstract
 				if (!$parameter->isVariadic()) {
 					throw new Exception(sprintf('An optional parameter $%s must have a default value', $parameter->getName()));
 				}
-				$defaultValue = new Node\Expr\Array_();
-			} elseif (is_string($parameter->getDefaultValue())) {
-				$defaultValue = new Node\Scalar\String_($parameter->getDefaultValue());
-			} elseif (is_int($parameter->getDefaultValue())) {
-				$defaultValue = new Node\Scalar\Int_($parameter->getDefaultValue());
-			} elseif ($parameter->getDefaultValue() === true) {
+
+				if ($node instanceof Node\Expr\FuncCall
+					&& $node->name instanceof Node\Name
+					&& in_array($node->name->toLowerString(), ['array_slice', 'array_splice'], true)
+					&& $parameter->name === 'length'
+				) {
+					$defaultValue = new Node\Expr\ConstFetch(new Node\Name\FullyQualified('null'));
+				} else {
+					$defaultValue = new Node\Expr\Array_();
+				}
+
+			} elseif (is_string($defaultValue)) {
+				$defaultValue = new Node\Scalar\String_($defaultValue);
+			} elseif (is_int($defaultValue)) {
+				$defaultValue = new Node\Scalar\Int_($defaultValue);
+			} elseif ($defaultValue === true) {
 				$defaultValue = new Node\Expr\ConstFetch(new Node\Name\FullyQualified('true'));
-			} elseif ($parameter->getDefaultValue() === false) {
+			} elseif ($defaultValue === false) {
 				$defaultValue = new Node\Expr\ConstFetch(new Node\Name\FullyQualified('false'));
-			} elseif (is_array($parameter->getDefaultValue())) {
-				$defaultValue = new Node\Expr\Array_($parameter->getDefaultValue());
-			} elseif (is_null($parameter->getDefaultValue())) {
+			} elseif ($defaultValue === []) {
+				$defaultValue = new Node\Expr\Array_($defaultValue);
+			} elseif (is_null($defaultValue)) {
 				$defaultValue = new Node\Expr\ConstFetch(new Node\Name\FullyQualified('null'));
 			} else {
-				throw new RuntimeException(sprintf('Unexpected value %s', var_export($parameter->getDefaultValue(), true)));
+				throw new RuntimeException(sprintf('Unexpected value %s', var_export($defaultValue, true)));
 			}
 
 			$reorderedArgs[$j] = new Arg($defaultValue);
