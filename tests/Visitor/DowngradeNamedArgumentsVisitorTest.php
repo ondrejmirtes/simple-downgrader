@@ -51,7 +51,7 @@ PHP,
 			<<<'PHP'
 <?php
 
-#[\JetBrains\PhpStorm\Deprecated(replacement: 'foo', reason: 'bar')]
+#[\Deprecated(since: 'foo', message: 'bar')]
 class Foo
 {
 }
@@ -60,7 +60,7 @@ PHP
 			<<<'PHP'
 <?php
 
-#[\JetBrains\PhpStorm\Deprecated('bar', 'foo')]
+#[\Deprecated('bar', 'foo')]
 class Foo
 {
 }
@@ -72,9 +72,9 @@ PHP
 			<<<'PHP'
 <?php
 
-use JetBrains\PhpStorm\Deprecated;
+use Deprecated;
 
-#[Deprecated(replacement: 'foo', reason: 'bar')]
+#[Deprecated(since: 'foo', message: 'bar')]
 class Foo
 {
 }
@@ -83,7 +83,7 @@ PHP
 			<<<'PHP'
 <?php
 
-use JetBrains\PhpStorm\Deprecated;
+use Deprecated;
 
 #[Deprecated('bar', 'foo')]
 class Foo
@@ -97,7 +97,7 @@ PHP
 			<<<'PHP'
 <?php
 
-#[\JetBrains\PhpStorm\Deprecated(replacement: 'foo')]
+#[\Deprecated(since: 'foo')]
 class Foo
 {
 }
@@ -106,7 +106,7 @@ PHP
 			<<<'PHP'
 <?php
 
-#[\JetBrains\PhpStorm\Deprecated("", 'foo')]
+#[\Deprecated(\null, 'foo')]
 class Foo
 {
 }
