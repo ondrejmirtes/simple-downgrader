@@ -3,26 +3,14 @@
 namespace SimpleDowngrader\Visitor;
 
 use PhpParser\NodeVisitor;
-use PHPStan\BetterReflection\BetterReflection;
-use PHPStan\BetterReflection\Reflector\DefaultReflector;
-use PHPStan\BetterReflection\SourceLocator\Type\AggregateSourceLocator;
-use PHPStan\BetterReflection\SourceLocator\Type\DirectoriesSourceLocator;
-use PHPStan\BetterReflection\SourceLocator\Type\PhpInternalSourceLocator;
 use const PHP_VERSION_ID;
 
-class DowngradeNamedArgumentsVisitorTest extends AbstractVisitorTestCase
+	class DowngradeNamedArgumentsVisitorTest extends AbstractVisitorTestCase
 {
 
 	protected function getVisitor(): NodeVisitor
 	{
-		$betterReflection = new BetterReflection();
-		$astLocator = $betterReflection->astLocator();
-		$sourceStubber = $betterReflection->sourceStubber();
-
-		return new DowngradeNamedArgumentsVisitor(new DefaultReflector(new AggregateSourceLocator([
-			new DirectoriesSourceLocator([__DIR__ . '/../../tests/Fixtures'], $astLocator),
-			new PhpInternalSourceLocator($astLocator, $sourceStubber),
-		])));
+		return new DowngradeNamedArgumentsVisitor();
 	}
 
 	public function dataVisitor(): iterable
@@ -248,7 +236,7 @@ PHP
 
 use SimpleDowngrader\Fixtures\StreamOutput;
 
-new StreamOutput(\SimpleDowngrader\Fixtures\StreamOutput::VERBOSITY_NORMAL, true);
+new StreamOutput(1, true);
 PHP,
 		];
 
