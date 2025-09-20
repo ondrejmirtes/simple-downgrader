@@ -17,6 +17,7 @@ use function array_pop;
 use function array_values;
 use function count;
 use function in_array;
+use function is_array;
 use function is_int;
 use function is_null;
 use function is_string;
@@ -384,20 +385,8 @@ class DowngradeNamedArgumentsVisitor extends NodeVisitorAbstract
 					$defaultValue = new Node\Expr\Array_();
 				}
 
-			} elseif (is_string($parameter->getDefaultValue())) {
-				$defaultValue = new Node\Scalar\String_($parameter->getDefaultValue());
-			} elseif (is_int($parameter->getDefaultValue())) {
-				$defaultValue = new Node\Scalar\Int_($parameter->getDefaultValue());
-			} elseif ($parameter->getDefaultValue() === true) {
-				$defaultValue = new Node\Expr\ConstFetch(new Node\Name\FullyQualified('true'));
-			} elseif ($parameter->getDefaultValue() === false) {
-				$defaultValue = new Node\Expr\ConstFetch(new Node\Name\FullyQualified('false'));
-			} elseif ($parameter->getDefaultValue() === []) {
-				$defaultValue = new Node\Expr\Array_($parameter->getDefaultValue());
-			} elseif (is_null($parameter->getDefaultValue())) {
-				$defaultValue = new Node\Expr\ConstFetch(new Node\Name\FullyQualified('null'));
 			} else {
-				throw new RuntimeException(sprintf('Unexpected value %s', var_export($parameter->getDefaultValue(), true)));
+				$defaultValue = $this->scalarToExpr($parameter->getDefaultValue());
 			}
 
 			$reorderedArgs[$j] = new Arg($defaultValue);
@@ -410,6 +399,32 @@ class DowngradeNamedArgumentsVisitor extends NodeVisitorAbstract
 		}
 
 		return array_values($reorderedArgs);
+	}
+
+	/**
+	 * @param mixed $value
+	 */
+	private function scalarToExpr($value): Node\Expr
+	{
+		if (is_string($value)) {
+			return new Node\Scalar\String_($value);
+		} elseif (is_int($value)) {
+			return new Node\Scalar\Int_($value);
+		} elseif ($value === true) {
+			return new Node\Expr\ConstFetch(new Node\Name\FullyQualified('true'));
+		} elseif ($value === false) {
+			return new Node\Expr\ConstFetch(new Node\Name\FullyQualified('false'));
+		} elseif (is_array($value)) {
+			$items = [];
+			foreach ($value as $key => $val) {
+				$items[] = new Node\ArrayItem($this->scalarToExpr($val), $this->scalarToExpr($key));
+			}
+			return new Node\Expr\Array_($items);
+		} elseif (is_null($value)) {
+			return new Node\Expr\ConstFetch(new Node\Name\FullyQualified('null'));
+		}
+
+		throw new RuntimeException(sprintf('Unexpected value %s', var_export($value, true)));
 	}
 
 }
