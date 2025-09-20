@@ -97,7 +97,7 @@ class DowngradeNamedArgumentsVisitor extends NodeVisitorAbstract
 				return null;
 			}
 
-			$newArgs = $this->downgradeArgs($node, array_values($node->getArgs()), $function->getParameters());
+			$newArgs = $this->downgradeArgs(array_values($node->getArgs()), $function->getParameters());
 			if ($newArgs === null) {
 				return null;
 			}
@@ -124,7 +124,7 @@ class DowngradeNamedArgumentsVisitor extends NodeVisitorAbstract
 				return null;
 			}
 
-			$newArgs = $this->downgradeArgs($node, array_values($node->getArgs()), $constructor->getParameters());
+			$newArgs = $this->downgradeArgs(array_values($node->getArgs()), $constructor->getParameters());
 			if ($newArgs === null) {
 				return null;
 			}
@@ -156,7 +156,7 @@ class DowngradeNamedArgumentsVisitor extends NodeVisitorAbstract
 			}
 
 			$method = $class->getMethod($node->name->toString());
-			$newArgs = $this->downgradeArgs($node, array_values($node->getArgs()), $method->getParameters());
+			$newArgs = $this->downgradeArgs(array_values($node->getArgs()), $method->getParameters());
 			if ($newArgs === null) {
 				return null;
 			}
@@ -230,7 +230,7 @@ class DowngradeNamedArgumentsVisitor extends NodeVisitorAbstract
 					continue;
 				}
 
-				$newArgs = $this->downgradeArgs(null, $attr->args, $constructor->getParameters());
+				$newArgs = $this->downgradeArgs($attr->args, $constructor->getParameters());
 				if ($newArgs === null) {
 					continue;
 				}
@@ -262,7 +262,7 @@ class DowngradeNamedArgumentsVisitor extends NodeVisitorAbstract
 	 * @param list<ReflectionParameter> $parameters
 	 * @return list<Arg>|null
 	 */
-	private function downgradeArgs(?Node\Expr\CallLike $node, array $args, array $parameters): ?array
+	private function downgradeArgs(array $args, array $parameters): ?array
 	{
 		if (count($args) === 0) {
 			return [];
@@ -371,9 +371,6 @@ class DowngradeNamedArgumentsVisitor extends NodeVisitorAbstract
 
 			if (!$parameter->isDefaultValueAvailable()) {
 				if (!$parameter->isVariadic()) {
-					if ($node instanceof Node\Expr\FuncCall && $node->name instanceof Node\Name) {
-						throw new Exception(sprintf('Optional parameter $%s of %s must have a default value', $parameter->getName(), $node->name->toString()));
-					}
 					throw new Exception(sprintf('An optional parameter $%s must have a default value', $parameter->getName()));
 				}
 
