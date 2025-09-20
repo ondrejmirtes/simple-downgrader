@@ -249,7 +249,7 @@ PHP
 
 use SimpleDowngrader\Fixtures\StreamOutput;
 
-new StreamOutput(\SimpleDowngrader\Fixtures\StreamOutput::VERBOSITY_NORMAL, true);
+new StreamOutput(1, true);
 PHP,
 		];
 
