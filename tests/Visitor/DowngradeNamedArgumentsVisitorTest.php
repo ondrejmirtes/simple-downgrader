@@ -202,7 +202,7 @@ PHP
 array_slice(
 	$this->resolvedPhpDocBlockCache,
 	1,
-    null,
+    \null,
 	true,
 );
 PHP,

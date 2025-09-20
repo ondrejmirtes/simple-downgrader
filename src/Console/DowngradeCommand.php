@@ -233,7 +233,7 @@ class DowngradeCommand extends Command
 					$phpDocEditor,
 					$reflector,
 				);
-				$visitors[] = new DowngradeNamedArgumentsVisitor($reflector);
+				$visitors[] = new DowngradeNamedArgumentsVisitor();
 			}
 
 			$visitors[] = new DowngradeMixedTypeVisitor($typeDowngraderHelper);

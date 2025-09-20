@@ -18,6 +18,7 @@ use function array_values;
 use function count;
 use function in_array;
 use function is_int;
+use function is_null;
 use function is_string;
 use function ksort;
 use function max;
@@ -95,38 +96,6 @@ class DowngradeNamedArgumentsVisitor extends NodeVisitorAbstract
 				return null;
 			}
 
-			$refParameter = new ReflectionClass(ReflectionParameter::class);
-			$refPropOptional = $refParameter->getProperty('isOptional');
-			$refPropOptional->setAccessible(true);
-
-			$parameters = $function->getParameters();
-			if (in_array($function->getName(), ['array_slice', 'array_splice'], true)) {
-				$length = $parameters[2];
-				$refPropOptional->setValue($length, true);
-
-				$refPropDefault = $refParameter->getProperty('default');
-				$refPropDefault->setAccessible(true);
-				$refPropDefault->setValue($length, new Node\Expr\ConstFetch(new Node\Name('null')));
-			} else {
-				$optionalOccurred = false;
-				foreach ($parameters as $parameter) {
-					if ($parameter->isOptional()) {
-						continue;
-					}
-					if ($parameter->getDefaultValue() !== null) {
-						$refPropOptional->setValue($parameter, true);
-						$optionalOccurred = true;
-						continue;
-					}
-
-					if (!$optionalOccurred) {
-						continue;
-					}
-
-					$refPropOptional->setValue($parameter, true);
-				}
-			}
-
 			$newArgs = $this->downgradeArgs(array_values($node->getArgs()), $function->getParameters(), null);
 			if ($newArgs === null) {
 				return null;
@@ -144,7 +113,7 @@ class DowngradeNamedArgumentsVisitor extends NodeVisitorAbstract
 			$accessedClassName = $this->resolveName($node->class, $this->classLikeStack[count($this->classLikeStack) - 1] ?? null);
 
 			try {
-				$class = new ReflectionClass($accessedClassName);
+				$class = new ReflectionClass($accessedClassName); /** @phpstan-ignore argument.type */
 			} catch (ReflectionException $e) {
 				return null;
 			}
@@ -176,7 +145,7 @@ class DowngradeNamedArgumentsVisitor extends NodeVisitorAbstract
 			$accessedClassName = $this->resolveName($node->class, $this->classLikeStack[count($this->classLikeStack) - 1] ?? null);
 
 			try {
-				$class = new ReflectionClass($accessedClassName);
+				$class = new ReflectionClass($accessedClassName); /** @phpstan-ignore argument.type */
 			} catch (ReflectionException $e) {
 				return null;
 			}
@@ -223,7 +192,7 @@ class DowngradeNamedArgumentsVisitor extends NodeVisitorAbstract
 
 		if ($name->toLowerString() === 'parent') {
 			try {
-				$class = new ReflectionClass($inClassName->toString());
+				$class = new ReflectionClass($inClassName->toString()); /** @phpstan-ignore argument.type */
 				$parent = $class->getParentClass();
 				if ($parent === false) {
 					return $stringName;
@@ -250,7 +219,7 @@ class DowngradeNamedArgumentsVisitor extends NodeVisitorAbstract
 					continue;
 				}
 				try {
-					$class = new ReflectionClass($attr->name->toString());
+					$class = new ReflectionClass($attr->name->toString()); /** @phpstan-ignore argument.type */
 				} catch (ReflectionException $e) {
 					continue;
 				}
@@ -408,6 +377,12 @@ class DowngradeNamedArgumentsVisitor extends NodeVisitorAbstract
 				$defaultValue = new Node\Scalar\String_($parameter->getDefaultValue());
 			} elseif (is_int($parameter->getDefaultValue())) {
 				$defaultValue = new Node\Scalar\Int_($parameter->getDefaultValue());
+			} elseif ($parameter->getDefaultValue() === true) {
+				$defaultValue = new Node\Expr\ConstFetch(new Node\Name\FullyQualified('true'));
+			} elseif ($parameter->getDefaultValue() === false) {
+				$defaultValue = new Node\Expr\ConstFetch(new Node\Name\FullyQualified('false'));
+			} elseif (is_null($parameter->getDefaultValue())) {
+				$defaultValue = new Node\Expr\ConstFetch(new Node\Name\FullyQualified('null'));
 			} else {
 				throw new RuntimeException(sprintf('Unexpected value %s', var_export($parameter->getDefaultValue(), true)));
 			}
