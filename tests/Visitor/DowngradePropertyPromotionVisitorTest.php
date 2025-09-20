@@ -243,8 +243,8 @@ PHP
 ,
 		];
 
-			yield [
-				<<<'PHP'
+		yield [
+			<<<'PHP'
 <?php
 
 class Foo
@@ -255,7 +255,7 @@ class Foo
 	) {}
 }
 PHP,
-				<<<'PHP'
+			<<<'PHP'
 <?php
 
 class Foo
@@ -268,10 +268,10 @@ class Foo
 	}
 }
 PHP,
-			];
+		];
 
-			yield [
-				<<<'PHP'
+		yield [
+			<<<'PHP'
 <?php
 
 class Foo
@@ -282,7 +282,7 @@ class Foo
 	) {}
 }
 PHP,
-				<<<'PHP'
+			<<<'PHP'
 <?php
 
 class Foo
@@ -294,10 +294,10 @@ class Foo
 	}
 }
 PHP,
-			];
+		];
 
-			yield [
-				<<<'PHP'
+		yield [
+			<<<'PHP'
 <?php
 
 class SomeClass
@@ -312,7 +312,7 @@ class SomeClass
 }
 PHP
 ,
-				<<<'PHP'
+			<<<'PHP'
 <?php
 
 class SomeClass
@@ -326,7 +326,7 @@ class SomeClass
 }
 PHP
 ,
-			];
+		];
 	}
 
 }
