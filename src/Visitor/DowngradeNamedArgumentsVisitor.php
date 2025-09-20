@@ -362,7 +362,6 @@ class DowngradeNamedArgumentsVisitor extends NodeVisitorAbstract
 			}
 
 			$parameter = $parameters[$j];
-			$defaultValue = $parameter->getDefaultValue();
 
 			// we can only fill up optional parameters with default values
 			if (!$parameter->isOptional()) {
@@ -384,20 +383,20 @@ class DowngradeNamedArgumentsVisitor extends NodeVisitorAbstract
 					$defaultValue = new Node\Expr\Array_();
 				}
 
-			} elseif (is_string($defaultValue)) {
-				$defaultValue = new Node\Scalar\String_($defaultValue);
-			} elseif (is_int($defaultValue)) {
-				$defaultValue = new Node\Scalar\Int_($defaultValue);
-			} elseif ($defaultValue === true) {
+			} elseif (is_string($parameter->getDefaultValue())) {
+				$defaultValue = new Node\Scalar\String_($parameter->getDefaultValue());
+			} elseif (is_int($parameter->getDefaultValue())) {
+				$defaultValue = new Node\Scalar\Int_($parameter->getDefaultValue());
+			} elseif ($parameter->getDefaultValue() === true) {
 				$defaultValue = new Node\Expr\ConstFetch(new Node\Name\FullyQualified('true'));
-			} elseif ($defaultValue === false) {
+			} elseif ($parameter->getDefaultValue() === false) {
 				$defaultValue = new Node\Expr\ConstFetch(new Node\Name\FullyQualified('false'));
-			} elseif ($defaultValue === []) {
-				$defaultValue = new Node\Expr\Array_($defaultValue);
-			} elseif (is_null($defaultValue)) {
+			} elseif ($parameter->getDefaultValue() === []) {
+				$defaultValue = new Node\Expr\Array_($parameter->getDefaultValue());
+			} elseif (is_null($parameter->getDefaultValue())) {
 				$defaultValue = new Node\Expr\ConstFetch(new Node\Name\FullyQualified('null'));
 			} else {
-				throw new RuntimeException(sprintf('Unexpected value %s', var_export($defaultValue, true)));
+				throw new RuntimeException(sprintf('Unexpected value %s', var_export($parameter->getDefaultValue(), true)));
 			}
 
 			$reorderedArgs[$j] = new Arg($defaultValue);
