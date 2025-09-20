@@ -250,7 +250,7 @@ PHP
 class Foo
 {
 	public function __construct(
-		#[\JetBrains\PhpStorm\Immutable]
+		#[\SimpleDowngrader\Fixtures\MyImmutable]
 		public int $foo,
 	) {}
 }
@@ -260,7 +260,7 @@ PHP,
 
 class Foo
 {
-	#[\JetBrains\PhpStorm\Immutable]
+	#[\SimpleDowngrader\Fixtures\MyImmutable]
 	public int $foo;
 	public function __construct(int $foo)
 	{
@@ -277,7 +277,7 @@ PHP,
 class Foo
 {
 	public function __construct(
-		#[\JetBrains\PhpStorm\Language]
+		#[\SimpleDowngrader\Fixtures\MyLanguage]
 		public int $foo,
 	) {}
 }
@@ -288,7 +288,7 @@ PHP,
 class Foo
 {
 	public int $foo;
-	public function __construct(#[\JetBrains\PhpStorm\Language] int $foo)
+	public function __construct(#[\SimpleDowngrader\Fixtures\MyLanguage] int $foo)
 	{
 		$this->foo = $foo;
 	}
