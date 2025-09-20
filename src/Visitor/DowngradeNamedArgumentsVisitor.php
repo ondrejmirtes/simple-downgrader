@@ -377,7 +377,7 @@ class DowngradeNamedArgumentsVisitor extends NodeVisitorAbstract
 				) {
 					$defaultValue = new Node\Expr\ConstFetch(new Node\Name\FullyQualified('null'));
 				} elseif (!$parameter->isVariadic()) {
-					if ($node->name instanceof Node\Name) {
+					if ($node instanceof Node\Expr\FuncCall && $node->name instanceof Node\Name) {
 						throw new Exception(sprintf('Optional parameter $%s of %s must have a default value', $parameter->getName(), $node->name->toString()));
 					}
 					throw new Exception(sprintf('An optional parameter $%s must have a default value', $parameter->getName()));

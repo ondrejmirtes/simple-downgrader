@@ -74,7 +74,7 @@ PHP
 			<<<'PHP'
 <?php
 
-#[\SimpleDowngrader\Fixtures\MyDeprecated(null, 'foo')]
+#[\SimpleDowngrader\Fixtures\MyDeprecated(\null, 'foo')]
 class Foo
 {
 }
@@ -263,7 +263,7 @@ PHP
 class Foo
 {
 	public function __construct(
-		#[\SimpleDowngrader\Fixtures\MyDeprecated(null, 'foo')]
+		#[\SimpleDowngrader\Fixtures\MyDeprecated(\null, 'foo')]
 		public int $foo,
 	)
 	{
