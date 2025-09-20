@@ -40,6 +40,7 @@ class StreamOutput
 PHP,
 				$astLocator,
 			),
+			new DirectoriesSourceLocator([__DIR__ . '/../../tests/Fixtures'], $astLocator),
 			new DirectoriesSourceLocator([__DIR__ . '/../../vendor/jetbrains/phpstorm-stubs/meta/attributes'], $astLocator),
 			new PhpInternalSourceLocator($astLocator, $sourceStubber),
 		])));
@@ -51,7 +52,7 @@ PHP,
 			<<<'PHP'
 <?php
 
-#[\Deprecated(since: 'foo', message: 'bar')]
+#[\SimpleDowngrader\Fixtures\MyDeprecated(since: 'foo', message: 'bar')]
 class Foo
 {
 }
@@ -60,7 +61,7 @@ PHP
 			<<<'PHP'
 <?php
 
-#[\Deprecated('bar', 'foo')]
+#[\SimpleDowngrader\Fixtures\MyDeprecated('bar', 'foo')]
 class Foo
 {
 }
@@ -74,7 +75,7 @@ PHP
 
 use Deprecated;
 
-#[Deprecated(since: 'foo', message: 'bar')]
+#[SimpleDowngrader\Fixtures\MyDeprecated(since: 'foo', message: 'bar')]
 class Foo
 {
 }
@@ -85,7 +86,7 @@ PHP
 
 use Deprecated;
 
-#[Deprecated('bar', 'foo')]
+#[SimpleDowngrader\Fixtures\MyDeprecated('bar', 'foo')]
 class Foo
 {
 }
@@ -97,7 +98,7 @@ PHP
 			<<<'PHP'
 <?php
 
-#[\Deprecated(since: 'foo')]
+#[\SimpleDowngrader\Fixtures\MyDeprecated(since: 'foo')]
 class Foo
 {
 }
@@ -106,7 +107,7 @@ PHP
 			<<<'PHP'
 <?php
 
-#[\Deprecated(\null, 'foo')]
+#[\SimpleDowngrader\Fixtures\MyDeprecated(null, 'foo')]
 class Foo
 {
 }
@@ -279,7 +280,7 @@ PHP,
 class Foo
 {
 	public function __construct(
-		#[\JetBrains\PhpStorm\Deprecated(replacement: 'foo')]
+		#[\SimpleDowngrader\Fixtures\MyDeprecated(since: 'foo')]
 		public int $foo,
 	)
 	{
@@ -293,7 +294,7 @@ PHP
 class Foo
 {
 	public function __construct(
-		#[\JetBrains\PhpStorm\Deprecated("", 'foo')]
+		#[\SimpleDowngrader\Fixtures\MyDeprecated(null, 'foo')]
 		public int $foo,
 	)
 	{
