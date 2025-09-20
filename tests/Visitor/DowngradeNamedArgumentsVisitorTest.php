@@ -73,9 +73,9 @@ PHP
 			<<<'PHP'
 <?php
 
-use Deprecated;
+use SimpleDowngrader\Fixtures\MyDeprecated;
 
-#[SimpleDowngrader\Fixtures\MyDeprecated(since: 'foo', message: 'bar')]
+#[MyDeprecated(since: 'foo', message: 'bar')]
 class Foo
 {
 }
@@ -84,9 +84,9 @@ PHP
 			<<<'PHP'
 <?php
 
-use Deprecated;
+use SimpleDowngrader\Fixtures\MyDeprecated;
 
-#[SimpleDowngrader\Fixtures\MyDeprecated('bar', 'foo')]
+#[MyDeprecated('bar', 'foo')]
 class Foo
 {
 }
