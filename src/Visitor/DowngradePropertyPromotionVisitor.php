@@ -3,16 +3,18 @@
 namespace SimpleDowngrader\Visitor;
 
 use Attribute;
+use LogicException;
 use PhpParser\Node;
 use PhpParser\NodeVisitorAbstract;
-use PHPStan\BetterReflection\Reflector\Exception\IdentifierNotFound;
-use PHPStan\BetterReflection\Reflector\Reflector;
 use PHPStan\PhpDocParser\Ast\PhpDoc\PhpDocNode;
 use PHPStan\PhpDocParser\Ast\PhpDoc\PhpDocTagNode;
 use PHPStan\PhpDocParser\Ast\PhpDoc\VarTagValueNode;
 use PHPStan\PhpDocParser\Lexer\Lexer;
 use PHPStan\PhpDocParser\Parser\PhpDocParser;
 use PHPStan\PhpDocParser\Parser\TokenIterator;
+use ReflectionAttribute;
+use ReflectionClass;
+use ReflectionException;
 use SimpleDowngrader\PhpDoc\PhpDocEditor;
 use function array_key_exists;
 use function array_reverse;
@@ -31,19 +33,15 @@ class DowngradePropertyPromotionVisitor extends NodeVisitorAbstract
 
 	private PhpDocEditor $phpDocEditor;
 
-	private Reflector $reflector;
-
 	public function __construct(
 		Lexer $lexer,
 		PhpDocParser $phpDocParser,
 		PhpDocEditor $phpDocEditor,
-		Reflector $reflector
 	)
 	{
 		$this->lexer = $lexer;
 		$this->phpDocParser = $phpDocParser;
 		$this->phpDocEditor = $phpDocEditor;
-		$this->reflector = $reflector;
 	}
 
 	public function enterNode(Node $node)
@@ -157,14 +155,17 @@ class DowngradePropertyPromotionVisitor extends NodeVisitorAbstract
 			$attrGroup = clone $attrGroup;
 			foreach ($attrGroup->attrs as $j => $attr) {
 				try {
-					$attributeReflection = $this->reflector->reflectClass($attr->name->toString());
-				} catch (IdentifierNotFound $e) {
+					$attributeReflection = new ReflectionClass($attr->name->toString()); /** @phpstan-ignore argument.type */
+				} catch (ReflectionException $e) {
 					continue;
 				}
 
-				$actualAttributes = $attributeReflection->getAttributesByName(Attribute::class);
+				$actualAttributes = $attributeReflection->getAttributes(Attribute::class);
 				if (count($actualAttributes) !== 1) {
 					continue;
+				}
+				if (!$actualAttributes[0] instanceof ReflectionAttribute) {
+					throw new LogicException();
 				}
 
 				$arguments = $actualAttributes[0]->getArguments();

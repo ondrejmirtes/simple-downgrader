@@ -17,19 +17,10 @@ class DowngradePropertyPromotionVisitorTest extends AbstractVisitorTestCase
 
 	protected function getVisitor(): NodeVisitor
 	{
-		$betterReflection = new BetterReflection();
-		$astLocator = $betterReflection->astLocator();
-		$sourceStubber = $betterReflection->sourceStubber();
-		$reflector = new DefaultReflector(new AggregateSourceLocator([
-			new DirectoriesSourceLocator([__DIR__ . '/../../vendor/jetbrains/phpstorm-stubs/meta/attributes'], $astLocator),
-			new PhpInternalSourceLocator($astLocator, $sourceStubber),
-		]));
-
 		return new DowngradePropertyPromotionVisitor(
 			new Lexer(new ParserConfig([])),
 			$this->createPhpDocParser(),
 			$this->createPhpDocEditor(),
-			$reflector,
 		);
 	}
 

@@ -370,13 +370,7 @@ class DowngradeNamedArgumentsVisitor extends NodeVisitorAbstract
 			}
 
 			if (!$parameter->isDefaultValueAvailable()) {
-				if ($node instanceof Node\Expr\FuncCall
-					&& $node->name instanceof Node\Name
-					&& in_array($node->name->toLowerString(), ['array_slice', 'array_splice'], true)
-					&& $parameter->getName() === 'length'
-				) {
-					$defaultValue = new Node\Expr\ConstFetch(new Node\Name\FullyQualified('null'));
-				} elseif (!$parameter->isVariadic()) {
+				if (!$parameter->isVariadic()) {
 					if ($node instanceof Node\Expr\FuncCall && $node->name instanceof Node\Name) {
 						throw new Exception(sprintf('Optional parameter $%s of %s must have a default value', $parameter->getName(), $node->name->toString()));
 					}

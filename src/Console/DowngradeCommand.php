@@ -216,22 +216,10 @@ class DowngradeCommand extends Command
 			$visitors[] = new DowngradeUnionTypeVisitor($typeDowngraderHelper);
 
 			if ($composerJsonPath !== null) {
-				$betterReflection = new BetterReflection();
-				$astLocator = $betterReflection->astLocator();
-				$sourceStubber = $betterReflection->sourceStubber();
-				$reflector = new MemoizingReflector(
-					new DefaultReflector(
-						new MemoizingSourceLocator(new AggregateSourceLocator([
-							(new MakeLocatorForComposerJsonAndInstalledJson())(dirname($composerJsonPath), $astLocator),
-							new PhpInternalSourceLocator($astLocator, $sourceStubber),
-						])),
-					),
-				);
 				$visitors[] = new DowngradePropertyPromotionVisitor(
 					$this->phpDocLexer,
 					$this->phpDocParser,
 					$phpDocEditor,
-					$reflector,
 				);
 				$visitors[] = new DowngradeNamedArgumentsVisitor();
 			}
