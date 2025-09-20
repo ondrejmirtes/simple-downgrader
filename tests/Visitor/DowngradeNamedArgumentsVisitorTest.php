@@ -123,7 +123,7 @@ PHP
 				<<<'PHP'
 <?php
 
-Dom\XMLDocument::createEmpty("1.0", 'ISO-8859-2');
+Dom\XMLDocument::createEmpty('1.0', 'ISO-8859-2');
 PHP
 ,
 			];
@@ -152,7 +152,7 @@ class XMLDocument
 {
 	public function doFoo()
 	{
-		self::createEmpty("1.0", 'ISO-8859-2');
+		self::createEmpty('1.0', 'ISO-8859-2');
 	}
 }
 PHP,
