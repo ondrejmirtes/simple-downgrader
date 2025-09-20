@@ -3,7 +3,6 @@
 namespace SimpleDowngrader\Visitor;
 
 use Attribute;
-use LogicException;
 use PhpParser\Node;
 use PhpParser\NodeVisitorAbstract;
 use PHPStan\PhpDocParser\Ast\PhpDoc\PhpDocNode;
@@ -12,7 +11,6 @@ use PHPStan\PhpDocParser\Ast\PhpDoc\VarTagValueNode;
 use PHPStan\PhpDocParser\Lexer\Lexer;
 use PHPStan\PhpDocParser\Parser\PhpDocParser;
 use PHPStan\PhpDocParser\Parser\TokenIterator;
-use ReflectionAttribute;
 use ReflectionClass;
 use ReflectionException;
 use SimpleDowngrader\PhpDoc\PhpDocEditor;
@@ -163,9 +161,6 @@ class DowngradePropertyPromotionVisitor extends NodeVisitorAbstract
 				$actualAttributes = $attributeReflection->getAttributes(Attribute::class);
 				if (count($actualAttributes) !== 1) {
 					continue;
-				}
-				if (!$actualAttributes[0] instanceof ReflectionAttribute) {
-					throw new LogicException();
 				}
 
 				$arguments = $actualAttributes[0]->getArguments();
