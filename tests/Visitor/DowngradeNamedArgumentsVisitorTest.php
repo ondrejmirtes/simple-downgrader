@@ -5,7 +5,7 @@ namespace SimpleDowngrader\Visitor;
 use PhpParser\NodeVisitor;
 use const PHP_VERSION_ID;
 
-	class DowngradeNamedArgumentsVisitorTest extends AbstractVisitorTestCase
+class DowngradeNamedArgumentsVisitorTest extends AbstractVisitorTestCase
 {
 
 	protected function getVisitor(): NodeVisitor
