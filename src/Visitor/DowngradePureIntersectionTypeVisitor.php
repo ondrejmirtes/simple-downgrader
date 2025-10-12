@@ -10,6 +10,7 @@ use PHPStan\PhpDocParser\Ast\Type\IntersectionTypeNode;
 use PHPStan\PhpDocParser\Ast\Type\TypeNode;
 use function array_map;
 use function count;
+use function in_array;
 
 class DowngradePureIntersectionTypeVisitor extends NodeVisitorAbstract
 {
@@ -33,13 +34,18 @@ class DowngradePureIntersectionTypeVisitor extends NodeVisitorAbstract
 				return null;
 			},
 			static function (TypeNode $resultType): ?Name {
+				$scopeCallbackInterfaceNames = [
+					'\PHPStan\Analyser\Scope',
+					'\PHPStan\Analyser\NodeCallbackInvoker',
+				];
+
 				if (
 					$resultType instanceof IntersectionTypeNode
 					&& count($resultType->types) === 2
 					&& $resultType->types[0] instanceof IdentifierTypeNode
-					&& $resultType->types[0]->name === '\PHPStan\Analyser\Scope'
 					&& $resultType->types[1] instanceof IdentifierTypeNode
-					&& $resultType->types[1]->name === '\PHPStan\Analyser\NodeCallbackInvoker'
+					&& in_array($resultType->types[0]->name, $scopeCallbackInterfaceNames, true)
+					&& in_array($resultType->types[1]->name, $scopeCallbackInterfaceNames, true)
 				) {
 					return new Name('\PHPStan\Analyser\Scope');
 				}
