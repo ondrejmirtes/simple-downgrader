@@ -149,6 +149,38 @@ class SomeClass
 PHP
 ,
 		];
+
+		yield [
+			<<<'PHP'
+<?php
+
+use PHPStan\Analyser\Scope;
+use PHPStan\Analyser\NodeCallbackInvoker;
+
+class MyRule
+{
+    public function processNode(Node $node, Scope&NodeCallbackInvoker $scope): array
+    {}
+}
+PHP
+,
+			<<<'PHP'
+<?php
+
+use PHPStan\Analyser\Scope;
+use PHPStan\Analyser\NodeCallbackInvoker;
+
+class MyRule
+{
+    /**
+     * @param \PHPStan\Analyser\Scope&\PHPStan\Analyser\NodeCallbackInvoker $scope
+     */
+    public function processNode(Node $node, \PHPStan\Analyser\Scope $scope): array
+    {}
+}
+PHP
+,
+		];
 	}
 
 }
