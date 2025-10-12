@@ -3,11 +3,13 @@
 namespace SimpleDowngrader\Visitor;
 
 use PhpParser\Node;
+use PhpParser\Node\Name;
 use PhpParser\NodeVisitorAbstract;
 use PHPStan\PhpDocParser\Ast\Type\IdentifierTypeNode;
 use PHPStan\PhpDocParser\Ast\Type\IntersectionTypeNode;
 use PHPStan\PhpDocParser\Ast\Type\TypeNode;
 use function array_map;
+use function count;
 
 class DowngradePureIntersectionTypeVisitor extends NodeVisitorAbstract
 {
@@ -21,13 +23,29 @@ class DowngradePureIntersectionTypeVisitor extends NodeVisitorAbstract
 
 	public function enterNode(Node $node)
 	{
-		return $this->typeDowngraderHelper->downgradeType($node, function ($node): ?TypeNode {
-			if ($node instanceof Node\IntersectionType) {
-				return $this->createIntersectionTypeNode($node);
-			}
+		return $this->typeDowngraderHelper->downgradeType(
+			$node,
+			function ($node): ?TypeNode {
+				if ($node instanceof Node\IntersectionType) {
+					return $this->createIntersectionTypeNode($node);
+				}
 
-			return null;
-		});
+				return null;
+			},
+			static function (TypeNode $resultType): ?Name {
+				if (
+					$resultType instanceof IntersectionTypeNode
+					&& count($resultType->types) === 2
+					&& $resultType->types[0] instanceof IdentifierTypeNode
+					&& $resultType->types[0]->name === '\PHPStan\Analyser\Scope'
+					&& $resultType->types[1] instanceof IdentifierTypeNode
+					&& $resultType->types[1]->name === '\PHPStan\Analyser\NodeCallbackInvoker'
+				) {
+					return new Name('\PHPStan\Analyser\Scope');
+				}
+				return null;
+			},
+		);
 	}
 
 	private function createIntersectionTypeNode(Node\IntersectionType $intersectionType): IntersectionTypeNode

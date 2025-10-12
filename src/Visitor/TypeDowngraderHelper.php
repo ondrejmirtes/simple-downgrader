@@ -28,8 +28,9 @@ class TypeDowngraderHelper
 
 	/**
 	 * @param callable(Identifier|Name|ComplexType): ?TypeNode $callable
+	 * @param ?callable(TypeNode): (Identifier|Name|ComplexType|null) $paramTypeCallable
 	 */
-	public function downgradeType(Node $node, callable $callable): ?Node
+	public function downgradeType(Node $node, callable $callable, ?callable $paramTypeCallable = null): ?Node
 	{
 		if ($node instanceof Node\Stmt\Property && $node->type !== null) {
 			$this->phpDocEditor->edit($node, static function (\PHPStan\PhpDocParser\Ast\Node $phpDocNode) use ($node, $callable) {
@@ -69,7 +70,7 @@ class TypeDowngraderHelper
 					continue;
 				}
 
-				$this->phpDocEditor->edit($node, static function (\PHPStan\PhpDocParser\Ast\Node $phpDocNode) use ($param, $callable) {
+				$this->phpDocEditor->edit($node, static function (\PHPStan\PhpDocParser\Ast\Node $phpDocNode) use ($param, $callable, $paramTypeCallable) {
 					if (!$phpDocNode instanceof PhpDocNode) {
 						return null;
 					}
@@ -79,7 +80,11 @@ class TypeDowngraderHelper
 						return null;
 					}
 
-					$param->type = null;
+					if ($paramTypeCallable !== null) {
+						$param->type = $paramTypeCallable($resultType);
+					} else {
+						$param->type = null;
+					}
 
 					$paramTags = $phpDocNode->getParamTagValues();
 					foreach ($paramTags as $paramTag) {
