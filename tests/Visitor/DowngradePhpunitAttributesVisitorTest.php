@@ -82,6 +82,29 @@ class Foo
 PHP
 ,
 		];
+
+		yield [
+			<<<'PHP'
+<?php
+
+#[\PHPUnit\Framework\Attributes\CoversNothing]
+class Foo
+{
+}
+PHP
+,
+			<<<'PHP'
+<?php
+
+/**
+ * @coversNothing
+ */
+class Foo
+{
+}
+PHP
+,
+		];
 	}
 
 }
