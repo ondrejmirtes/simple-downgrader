@@ -40,6 +40,7 @@ class DowngradePhpunitAttributesVisitor extends NodeVisitorAbstract
 			'PHPUnit\Framework\Attributes\Group' => '@group',
 			'PHPUnit\Framework\Attributes\DataProvider' => '@dataProvider',
 			'PHPUnit\Framework\Attributes\RequiresPhp' => '@requires',
+			'PHPUnit\Framework\Attributes\CoversNothing' => '@coversNothing',
 		];
 
 		foreach ($attrGroups as $i => $attrGroup) {
@@ -48,27 +49,28 @@ class DowngradePhpunitAttributesVisitor extends NodeVisitorAbstract
 				if (!array_key_exists($attrName, $map)) {
 					continue;
 				}
-				if (
-					count($attr->args) === 0
-					|| !($attr->args[0]->value instanceof Node\Scalar\String_)
-				) {
-					continue;
-				}
 
-				$mappedAnnotation = $map[$attrName];
-
-				unset($attrGroup->attrs[$j]);
-				$this->phpDocEditor->edit($node, static function (\PHPStan\PhpDocParser\Ast\Node $node) use ($mappedAnnotation, $attrName, $attr) {
-					if (!$node instanceof PhpDocNode) {
-						return null;
-					}
-
+				if (count($attr->args) === 0) {
+					$annotationValue = '';
+				} elseif ($attr->args[0]->value instanceof Node\Scalar\String_) {
 					$annotationValue = $attr->args[0]->value->value;
 					if ($attrName === 'PHPUnit\Framework\Attributes\RequiresPhp') {
 						$annotationValue = sprintf('PHP %s', $annotationValue);
 					}
+				} else {
+					continue;
+				}
 
-					$node->children[] = new PhpDocTagNode($mappedAnnotation, new GenericTagValueNode($annotationValue));
+				$mappedAnnotation = $map[$attrName];
+				unset($attrGroup->attrs[$j]);
+
+				$phpDocReplacement = new GenericTagValueNode($annotationValue);
+				$this->phpDocEditor->edit($node, static function (\PHPStan\PhpDocParser\Ast\Node $node) use ($mappedAnnotation, $phpDocReplacement) {
+					if (!$node instanceof PhpDocNode) {
+						return null;
+					}
+
+					$node->children[] = new PhpDocTagNode($mappedAnnotation, $phpDocReplacement);
 				});
 			}
 
