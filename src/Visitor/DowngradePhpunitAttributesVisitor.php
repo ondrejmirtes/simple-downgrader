@@ -64,13 +64,13 @@ class DowngradePhpunitAttributesVisitor extends NodeVisitorAbstract
 				$mappedAnnotation = $map[$attrName];
 				unset($attrGroup->attrs[$j]);
 
-				$phpDocReplacement = new GenericTagValueNode($annotationValue);
-				$this->phpDocEditor->edit($node, static function (\PHPStan\PhpDocParser\Ast\Node $node) use ($mappedAnnotation, $phpDocReplacement) {
+				$phpDocTagValue = new GenericTagValueNode($annotationValue);
+				$this->phpDocEditor->edit($node, static function (\PHPStan\PhpDocParser\Ast\Node $node) use ($mappedAnnotation, $phpDocTagValue) {
 					if (!$node instanceof PhpDocNode) {
 						return null;
 					}
 
-					$node->children[] = new PhpDocTagNode($mappedAnnotation, $phpDocReplacement);
+					$node->children[] = new PhpDocTagNode($mappedAnnotation, $phpDocTagValue);
 				});
 			}
 
