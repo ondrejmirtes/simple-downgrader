@@ -132,6 +132,7 @@ class Settings
         if (defined('PHP_BINARY')) {
             $settings->phpExecutable = PHP_BINARY;
         }
+		var_dump($_SERVER['argv']);
         var_dump($arguments);
 
         foreach ($arguments as $argument) {
