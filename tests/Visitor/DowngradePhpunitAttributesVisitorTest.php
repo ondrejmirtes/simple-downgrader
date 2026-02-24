@@ -105,6 +105,29 @@ class Foo
 PHP
 ,
 		];
+
+		yield [
+			<<<'PHP'
+<?php
+
+#[\PHPUnit\Framework\Attributes\RunInSeparateProcess]
+class Foo
+{
+}
+PHP
+,
+			<<<'PHP'
+<?php
+
+/**
+ * @runInSeparateProcess
+ */
+class Foo
+{
+}
+PHP
+,
+		];
 	}
 
 }

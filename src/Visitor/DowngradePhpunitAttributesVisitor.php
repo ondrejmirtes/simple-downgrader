@@ -41,6 +41,7 @@ class DowngradePhpunitAttributesVisitor extends NodeVisitorAbstract
 			'PHPUnit\Framework\Attributes\DataProvider' => '@dataProvider',
 			'PHPUnit\Framework\Attributes\RequiresPhp' => '@requires',
 			'PHPUnit\Framework\Attributes\CoversNothing' => '@coversNothing',
+			'PHPUnit\Framework\Attributes\RunInSeparateProcess' => '@runInSeparateProcess',
 		];
 
 		foreach ($attrGroups as $i => $attrGroup) {
