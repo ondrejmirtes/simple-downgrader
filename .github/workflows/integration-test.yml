@@ -33,8 +33,20 @@ jobs:
           - "lowest"
           - "highest"
         script:
-          - "make lint"
           - "make phpstan"
+        include:
+            - operating-system: ubuntu-latest
+              php-version: "7.4"
+              dependencies: "lowest"
+              script: "make lint"
+            - operating-system: ubuntu-latest
+              php-version: "8.0"
+              dependencies: "lowest"
+              script: "make lint"
+            - operating-system: ubuntu-latest
+              php-version: "8.1"
+              dependencies: "lowest"
+              script: "make lint"
 
     steps:
       - name: "Checkout"
