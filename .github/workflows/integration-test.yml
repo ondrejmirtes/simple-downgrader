@@ -85,6 +85,10 @@ jobs:
         working-directory: "phpstan-src"
         run: "composer dump"
 
+      - run: "cp patch.diff phpstan-src/vendor/php-parallel-lint/php-parallel-lint/src"
+      - run: "patch < patch.diff"
+        working-directory: "phpstan-src/vendor/php-parallel-lint/php-parallel-lint/src"
+
       - name: "Script"
         working-directory: "phpstan-src"
         shell: bash
