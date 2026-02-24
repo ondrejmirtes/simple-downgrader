@@ -13,12 +13,6 @@ parameters:
 			path: src/Console/DowngradeCommand.php
 
 		-
-			message: '#^Access to property \$text of internal class Symfony\\Polyfill\\Php80\\PhpToken from outside its root namespace Symfony\.$#'
-			identifier: property.internalClass
-			count: 2
-			path: src/Php/FollowedByCommaAnalyser.php
-
-		-
 			message: '#^Call to method getTokenCode\(\) of internal class PhpParser\\Internal\\TokenStream from outside its root namespace PhpParser\.$#'
 			identifier: method.internalClass
 			count: 1
