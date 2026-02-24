@@ -85,7 +85,11 @@ jobs:
         working-directory: "phpstan-src"
         run: "composer dump"
 
-      - run: "cp -f Settings.php phpstan-src/vendor/php-parallel-lint/php-parallel-lint/src"
+      - shell: php {0}
+        run: |
+          <?php
+          unlink('phpstan-src/vendor/php-parallel-lint/php-parallel-lint/src');
+          copy('Settings.php', 'phpstan-src/vendor/php-parallel-lint/php-parallel-lint/src/Settings.php');
 
       - name: "Script"
         working-directory: "phpstan-src"
