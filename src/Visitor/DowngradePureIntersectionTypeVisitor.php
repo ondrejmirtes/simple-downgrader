@@ -37,6 +37,7 @@ class DowngradePureIntersectionTypeVisitor extends NodeVisitorAbstract
 				$scopeCallbackInterfaceNames = [
 					'\PHPStan\Analyser\Scope',
 					'\PHPStan\Analyser\NodeCallbackInvoker',
+					'\PHPStan\Analyser\CollectedDataEmitter',
 				];
 
 				if (
@@ -46,6 +47,19 @@ class DowngradePureIntersectionTypeVisitor extends NodeVisitorAbstract
 					&& $resultType->types[1] instanceof IdentifierTypeNode
 					&& in_array($resultType->types[0]->name, $scopeCallbackInterfaceNames, true)
 					&& in_array($resultType->types[1]->name, $scopeCallbackInterfaceNames, true)
+				) {
+					return new Name('\PHPStan\Analyser\Scope');
+				}
+
+				if (
+					$resultType instanceof IntersectionTypeNode
+					&& count($resultType->types) === 3
+					&& $resultType->types[0] instanceof IdentifierTypeNode
+					&& $resultType->types[1] instanceof IdentifierTypeNode
+					&& $resultType->types[2] instanceof IdentifierTypeNode
+					&& in_array($resultType->types[0]->name, $scopeCallbackInterfaceNames, true)
+					&& in_array($resultType->types[1]->name, $scopeCallbackInterfaceNames, true)
+					&& in_array($resultType->types[2]->name, $scopeCallbackInterfaceNames, true)
 				) {
 					return new Name('\PHPStan\Analyser\Scope');
 				}

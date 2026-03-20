@@ -213,6 +213,40 @@ class MyRule
 PHP
 ,
 		];
+
+		yield [
+			<<<'PHP'
+<?php
+
+use PHPStan\Analyser\Scope;
+use PHPStan\Analyser\NodeCallbackInvoker;
+use PHPStan\Analyser\CollectedDataEmitter;
+
+class MyRule
+{
+    public function processNode(Node $node, NodeCallbackInvoker&Scope&CollectedDataEmitter $scope): array
+    {}
+}
+PHP
+,
+			<<<'PHP'
+<?php
+
+use PHPStan\Analyser\Scope;
+use PHPStan\Analyser\NodeCallbackInvoker;
+use PHPStan\Analyser\CollectedDataEmitter;
+
+class MyRule
+{
+    /**
+     * @param \PHPStan\Analyser\NodeCallbackInvoker&\PHPStan\Analyser\Scope&\PHPStan\Analyser\CollectedDataEmitter $scope
+     */
+    public function processNode(Node $node, \PHPStan\Analyser\Scope $scope): array
+    {}
+}
+PHP
+,
+		];
 	}
 
 }
