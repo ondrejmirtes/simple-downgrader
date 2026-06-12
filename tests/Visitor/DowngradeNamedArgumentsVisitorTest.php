@@ -246,6 +246,76 @@ PHP,
 			<<<'PHP'
 <?php
 
+namespace SimpleDowngrader\Fixtures;
+
+class ServiceLocator
+{
+	public StreamOutputFactory $streamOutputFactory;
+
+	public function doFoo()
+	{
+		$this->streamOutputFactory->create(decorated: true);
+	}
+}
+PHP
+,
+			<<<'PHP'
+<?php
+
+namespace SimpleDowngrader\Fixtures;
+
+class ServiceLocator
+{
+	public StreamOutputFactory $streamOutputFactory;
+
+	public function doFoo()
+	{
+		$this->streamOutputFactory->create(1, true);
+	}
+}
+PHP,
+		];
+
+		yield [
+			<<<'PHP'
+<?php
+
+namespace SimpleDowngrader\Fixtures;
+
+class ServiceLocator
+{
+	/** @var StreamOutputFactory */
+	public $untypedStreamOutputFactory;
+
+	public function doFoo()
+	{
+		$this->untypedStreamOutputFactory->create(decorated: true);
+	}
+}
+PHP
+,
+			<<<'PHP'
+<?php
+
+namespace SimpleDowngrader\Fixtures;
+
+class ServiceLocator
+{
+	/** @var StreamOutputFactory */
+	public $untypedStreamOutputFactory;
+
+	public function doFoo()
+	{
+		$this->untypedStreamOutputFactory->create(decorated: true);
+	}
+}
+PHP,
+		];
+
+		yield [
+			<<<'PHP'
+<?php
+
 class Foo
 {
 	public function __construct(

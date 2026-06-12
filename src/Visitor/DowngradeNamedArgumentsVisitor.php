@@ -9,6 +9,7 @@ use PhpParser\NodeVisitorAbstract;
 use ReflectionClass;
 use ReflectionException;
 use ReflectionFunction;
+use ReflectionNamedType;
 use ReflectionParameter;
 use RuntimeException;
 use function array_key_exists;
@@ -125,6 +126,59 @@ class DowngradeNamedArgumentsVisitor extends NodeVisitorAbstract
 			}
 
 			$newArgs = $this->downgradeArgs(array_values($node->getArgs()), $constructor->getParameters());
+			if ($newArgs === null) {
+				return null;
+			}
+
+			$node->args = $newArgs;
+
+			return $node;
+		}
+		if (
+			$node instanceof Node\Expr\MethodCall
+			&& $node->var instanceof Node\Expr\PropertyFetch
+			&& $node->var->var instanceof Node\Expr\Variable
+			&& $node->var->var->name === 'this'
+			&& $node->var->name instanceof Node\Identifier
+			&& $node->name instanceof Node\Identifier
+			&& !$node->isFirstClassCallable()
+		) {
+			if (!$this->hasNamedArgs($node->getArgs())) {
+				return null;
+			}
+
+			$inClassName = $this->classLikeStack[count($this->classLikeStack) - 1] ?? null;
+			if ($inClassName === null) {
+				return null;
+			}
+
+			try {
+				$class = new ReflectionClass($inClassName->toString()); /** @phpstan-ignore argument.type */
+			} catch (ReflectionException $e) {
+				return null;
+			}
+
+			if (!$class->hasProperty($node->var->name->toString())) {
+				return null;
+			}
+
+			$propertyType = $class->getProperty($node->var->name->toString())->getType();
+			if (!$propertyType instanceof ReflectionNamedType || $propertyType->isBuiltin()) {
+				return null;
+			}
+
+			try {
+				$propertyClass = new ReflectionClass($propertyType->getName()); /** @phpstan-ignore argument.type */
+			} catch (ReflectionException $e) {
+				return null;
+			}
+
+			if (!$propertyClass->hasMethod($node->name->toString())) {
+				return null;
+			}
+
+			$method = $propertyClass->getMethod($node->name->toString());
+			$newArgs = $this->downgradeArgs(array_values($node->getArgs()), $method->getParameters());
 			if ($newArgs === null) {
 				return null;
 			}
