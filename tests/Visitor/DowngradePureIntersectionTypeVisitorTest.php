@@ -247,6 +247,74 @@ class MyRule
 PHP
 ,
 		];
+
+		yield [
+			<<<'PHP'
+<?php
+
+use PHPStan\Analyser\Scope;
+use PHPStan\Analyser\NodeCallbackInvoker;
+use PHPStan\Analyser\CollectedDataEmitter;
+use PHPStan\Analyser\FileDependencyEmitter;
+
+class MyRule
+{
+    public function processNode(Node $node, Scope&NodeCallbackInvoker&CollectedDataEmitter&FileDependencyEmitter $scope): array
+    {}
+}
+PHP
+,
+			<<<'PHP'
+<?php
+
+use PHPStan\Analyser\Scope;
+use PHPStan\Analyser\NodeCallbackInvoker;
+use PHPStan\Analyser\CollectedDataEmitter;
+use PHPStan\Analyser\FileDependencyEmitter;
+
+class MyRule
+{
+    /**
+     * @param \PHPStan\Analyser\Scope&\PHPStan\Analyser\NodeCallbackInvoker&\PHPStan\Analyser\CollectedDataEmitter&\PHPStan\Analyser\FileDependencyEmitter $scope
+     */
+    public function processNode(Node $node, \PHPStan\Analyser\Scope $scope): array
+    {}
+}
+PHP
+,
+		];
+
+		yield [
+			<<<'PHP'
+<?php
+
+use PHPStan\Analyser\Scope;
+use PHPStan\Analyser\FileDependencyEmitter;
+
+class MyExtension
+{
+    public function getTypeFromFunctionCall(FunctionReflection $functionReflection, FuncCall $functionCall, Scope&FileDependencyEmitter $scope): ?Type
+    {}
+}
+PHP
+,
+			<<<'PHP'
+<?php
+
+use PHPStan\Analyser\Scope;
+use PHPStan\Analyser\FileDependencyEmitter;
+
+class MyExtension
+{
+    /**
+     * @param \PHPStan\Analyser\Scope&\PHPStan\Analyser\FileDependencyEmitter $scope
+     */
+    public function getTypeFromFunctionCall(FunctionReflection $functionReflection, FuncCall $functionCall, \PHPStan\Analyser\Scope $scope): ?Type
+    {}
+}
+PHP
+,
+		];
 	}
 
 }

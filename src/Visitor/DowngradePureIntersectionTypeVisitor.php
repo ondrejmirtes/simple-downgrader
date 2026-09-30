@@ -9,7 +9,6 @@ use PHPStan\PhpDocParser\Ast\Type\IdentifierTypeNode;
 use PHPStan\PhpDocParser\Ast\Type\IntersectionTypeNode;
 use PHPStan\PhpDocParser\Ast\Type\TypeNode;
 use function array_map;
-use function count;
 use function in_array;
 
 class DowngradePureIntersectionTypeVisitor extends NodeVisitorAbstract
@@ -38,32 +37,20 @@ class DowngradePureIntersectionTypeVisitor extends NodeVisitorAbstract
 					'\PHPStan\Analyser\Scope',
 					'\PHPStan\Analyser\NodeCallbackInvoker',
 					'\PHPStan\Analyser\CollectedDataEmitter',
+					'\PHPStan\Analyser\FileDependencyEmitter',
 				];
 
-				if (
-					$resultType instanceof IntersectionTypeNode
-					&& count($resultType->types) === 2
-					&& $resultType->types[0] instanceof IdentifierTypeNode
-					&& $resultType->types[1] instanceof IdentifierTypeNode
-					&& in_array($resultType->types[0]->name, $scopeCallbackInterfaceNames, true)
-					&& in_array($resultType->types[1]->name, $scopeCallbackInterfaceNames, true)
-				) {
-					return new Name('\PHPStan\Analyser\Scope');
+				if (!$resultType instanceof IntersectionTypeNode) {
+					return null;
 				}
 
-				if (
-					$resultType instanceof IntersectionTypeNode
-					&& count($resultType->types) === 3
-					&& $resultType->types[0] instanceof IdentifierTypeNode
-					&& $resultType->types[1] instanceof IdentifierTypeNode
-					&& $resultType->types[2] instanceof IdentifierTypeNode
-					&& in_array($resultType->types[0]->name, $scopeCallbackInterfaceNames, true)
-					&& in_array($resultType->types[1]->name, $scopeCallbackInterfaceNames, true)
-					&& in_array($resultType->types[2]->name, $scopeCallbackInterfaceNames, true)
-				) {
-					return new Name('\PHPStan\Analyser\Scope');
+				foreach ($resultType->types as $type) {
+					if (!$type instanceof IdentifierTypeNode || !in_array($type->name, $scopeCallbackInterfaceNames, true)) {
+						return null;
+					}
 				}
-				return null;
+
+				return new Name('\PHPStan\Analyser\Scope');
 			},
 		);
 	}
