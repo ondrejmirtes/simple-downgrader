@@ -9,7 +9,7 @@ use PHPStan\PhpDocParser\Ast\Type\IdentifierTypeNode;
 use PHPStan\PhpDocParser\Ast\Type\IntersectionTypeNode;
 use PHPStan\PhpDocParser\Ast\Type\TypeNode;
 use function array_map;
-use function in_array;
+use function preg_match;
 
 class DowngradePureIntersectionTypeVisitor extends NodeVisitorAbstract
 {
@@ -33,21 +33,26 @@ class DowngradePureIntersectionTypeVisitor extends NodeVisitorAbstract
 				return null;
 			},
 			static function (TypeNode $resultType): ?Name {
-				$scopeCallbackInterfaceNames = [
-					'\PHPStan\Analyser\Scope',
-					'\PHPStan\Analyser\NodeCallbackInvoker',
-					'\PHPStan\Analyser\CollectedDataEmitter',
-					'\PHPStan\Analyser\FileDependencyEmitter',
-				];
-
 				if (!$resultType instanceof IntersectionTypeNode) {
 					return null;
 				}
 
+				// Scope intersected with interfaces it implements next to it, like NodeCallbackInvoker,
+				// CollectedDataEmitter or DependencyEmitter - all from the PHPStan\Analyser namespace.
+				$hasScope = false;
 				foreach ($resultType->types as $type) {
-					if (!$type instanceof IdentifierTypeNode || !in_array($type->name, $scopeCallbackInterfaceNames, true)) {
+					if (!$type instanceof IdentifierTypeNode || preg_match('~^\\\\PHPStan\\\\Analyser\\\\\w+$~', $type->name) !== 1) {
 						return null;
 					}
+					if ($type->name !== '\PHPStan\Analyser\Scope') {
+						continue;
+					}
+
+					$hasScope = true;
+				}
+
+				if (!$hasScope) {
+					return null;
 				}
 
 				return new Name('\PHPStan\Analyser\Scope');

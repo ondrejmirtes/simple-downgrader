@@ -255,11 +255,11 @@ PHP
 use PHPStan\Analyser\Scope;
 use PHPStan\Analyser\NodeCallbackInvoker;
 use PHPStan\Analyser\CollectedDataEmitter;
-use PHPStan\Analyser\FileDependencyEmitter;
+use PHPStan\Analyser\DependencyEmitter;
 
 class MyRule
 {
-    public function processNode(Node $node, Scope&NodeCallbackInvoker&CollectedDataEmitter&FileDependencyEmitter $scope): array
+    public function processNode(Node $node, Scope&NodeCallbackInvoker&CollectedDataEmitter&DependencyEmitter $scope): array
     {}
 }
 PHP
@@ -270,12 +270,12 @@ PHP
 use PHPStan\Analyser\Scope;
 use PHPStan\Analyser\NodeCallbackInvoker;
 use PHPStan\Analyser\CollectedDataEmitter;
-use PHPStan\Analyser\FileDependencyEmitter;
+use PHPStan\Analyser\DependencyEmitter;
 
 class MyRule
 {
     /**
-     * @param \PHPStan\Analyser\Scope&\PHPStan\Analyser\NodeCallbackInvoker&\PHPStan\Analyser\CollectedDataEmitter&\PHPStan\Analyser\FileDependencyEmitter $scope
+     * @param \PHPStan\Analyser\Scope&\PHPStan\Analyser\NodeCallbackInvoker&\PHPStan\Analyser\CollectedDataEmitter&\PHPStan\Analyser\DependencyEmitter $scope
      */
     public function processNode(Node $node, \PHPStan\Analyser\Scope $scope): array
     {}
@@ -289,11 +289,11 @@ PHP
 <?php
 
 use PHPStan\Analyser\Scope;
-use PHPStan\Analyser\FileDependencyEmitter;
+use PHPStan\Analyser\DependencyEmitter;
 
 class MyExtension
 {
-    public function getTypeFromFunctionCall(FunctionReflection $functionReflection, FuncCall $functionCall, Scope&FileDependencyEmitter $scope): ?Type
+    public function getTypeFromFunctionCall(FunctionReflection $functionReflection, FuncCall $functionCall, Scope&DependencyEmitter $scope): ?Type
     {}
 }
 PHP
@@ -302,14 +302,47 @@ PHP
 <?php
 
 use PHPStan\Analyser\Scope;
-use PHPStan\Analyser\FileDependencyEmitter;
+use PHPStan\Analyser\DependencyEmitter;
 
 class MyExtension
 {
     /**
-     * @param \PHPStan\Analyser\Scope&\PHPStan\Analyser\FileDependencyEmitter $scope
+     * @param \PHPStan\Analyser\Scope&\PHPStan\Analyser\DependencyEmitter $scope
      */
     public function getTypeFromFunctionCall(FunctionReflection $functionReflection, FuncCall $functionCall, \PHPStan\Analyser\Scope $scope): ?Type
+    {}
+}
+PHP
+,
+		];
+
+		yield [
+			<<<'PHP'
+<?php
+
+use PHPStan\Analyser\Scope;
+use PHPStan\Analyser\Generics\Emitter;
+
+class MyExtension
+{
+    public function getType(Scope&Emitter $scope, \PHPStan\Analyser\NodeCallbackInvoker&\PHPStan\Analyser\CollectedDataEmitter $invoker): ?Type
+    {}
+}
+PHP
+,
+			<<<'PHP'
+<?php
+
+use PHPStan\Analyser\Scope;
+use PHPStan\Analyser\Generics\Emitter;
+
+class MyExtension
+{
+    /**
+     * @param \PHPStan\Analyser\Scope&\PHPStan\Analyser\Generics\Emitter $scope
+     * @param \PHPStan\Analyser\NodeCallbackInvoker&\PHPStan\Analyser\CollectedDataEmitter $invoker
+     */
+    public function getType($scope, $invoker): ?Type
     {}
 }
 PHP
