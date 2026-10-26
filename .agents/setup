@@ -1,0 +1,43 @@
+#!/usr/bin/env bash
+# Prepares an Amp orb (Debian 12) to build, lint, test, and analyse this repository.
+set -euo pipefail
+
+cd "$(dirname "${BASH_SOURCE[0]}")/.."
+
+step() {
+	echo "==> $1"
+	SECONDS=0
+}
+
+done_step() {
+	echo "    (${SECONDS}s)"
+}
+
+# Debian 12 ships PHP 8.2, which satisfies composer.json's "php": "^8.2".
+packages=(php-cli php-mbstring php-xml php-zip unzip git make composer)
+missing=()
+for package in "${packages[@]}"; do
+	dpkg-query -W -f='${Status}' "$package" 2>/dev/null | grep -q 'install ok installed' || missing+=("$package")
+done
+
+step "System packages"
+if [ "${#missing[@]}" -gt 0 ]; then
+	echo "    installing: ${missing[*]}"
+	sudo DEBIAN_FRONTEND=noninteractive apt-get update -qq
+	sudo DEBIAN_FRONTEND=noninteractive apt-get install -y -qq --no-install-recommends "${missing[@]}"
+else
+	echo "    already installed"
+fi
+done_step
+
+export COMPOSER_NO_INTERACTION=1
+
+step "Composer dependencies"
+composer install --no-progress
+done_step
+
+step "Coding standard dependencies (build-cs)"
+composer install --no-progress --working-dir build-cs
+done_step
+
+php -v | head -n 1

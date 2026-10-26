@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+# Nothing to reconnect: this repository needs no services or authentication.
+set -euo pipefail
+
+command -v php >/dev/null
