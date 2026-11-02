@@ -20,6 +20,7 @@ use SimpleDowngrader\Php\PhpPrinterIndentationDetectorVisitor;
 use SimpleDowngrader\PhpDoc\PhpDocEditor;
 use SimpleDowngrader\Visitor\DowngradeMixedTypeVisitor;
 use SimpleDowngrader\Visitor\DowngradeNamedArgumentsVisitor;
+use SimpleDowngrader\Visitor\DowngradeNewInAttributeArgumentsVisitor;
 use SimpleDowngrader\Visitor\DowngradeNonCapturingCatchesVisitor;
 use SimpleDowngrader\Visitor\DowngradePhpunitAttributesVisitor;
 use SimpleDowngrader\Visitor\DowngradePropertyPromotionVisitor;
@@ -218,6 +219,11 @@ class DowngradeCommand extends Command
 
 			$visitors[] = new DowngradeMixedTypeVisitor($typeDowngraderHelper);
 			$visitors[] = new DowngradeStaticReturnTypeVisitor($typeDowngraderHelper);
+		}
+
+		if ($phpVersionId < 80100) {
+			// after DowngradeNamedArgumentsVisitor so that the downgraded new expressions get positional arguments
+			$visitors[] = new DowngradeNewInAttributeArgumentsVisitor();
 		}
 
 		return $visitors;
