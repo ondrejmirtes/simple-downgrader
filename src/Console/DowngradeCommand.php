@@ -22,6 +22,7 @@ use SimpleDowngrader\Visitor\DowngradeMixedTypeVisitor;
 use SimpleDowngrader\Visitor\DowngradeNamedArgumentsVisitor;
 use SimpleDowngrader\Visitor\DowngradeNewInAttributeArgumentsVisitor;
 use SimpleDowngrader\Visitor\DowngradeNonCapturingCatchesVisitor;
+use SimpleDowngrader\Visitor\DowngradeNullsafeOperatorVisitor;
 use SimpleDowngrader\Visitor\DowngradePhpunitAttributesVisitor;
 use SimpleDowngrader\Visitor\DowngradePropertyPromotionVisitor;
 use SimpleDowngrader\Visitor\DowngradePureIntersectionTypeVisitor;
@@ -206,6 +207,8 @@ class DowngradeCommand extends Command
 			$visitors[] = new DowngradeTrailingCommasInParametersVisitor($followedByCommaAnalyser);
 			$visitors[] = new DowngradeTrailingCommasInClosureUsesVisitor($followedByCommaAnalyser);
 			$visitors[] = new DowngradeNonCapturingCatchesVisitor();
+			// before DowngradeNamedArgumentsVisitor so that the downgraded method calls get positional arguments
+			$visitors[] = new DowngradeNullsafeOperatorVisitor();
 			$visitors[] = new DowngradeUnionTypeVisitor($typeDowngraderHelper);
 
 			if ($composerJsonPath !== null) {
